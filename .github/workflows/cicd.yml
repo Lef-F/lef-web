@@ -1,0 +1,21 @@
+name: Upload Website
+
+on: push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
+      - uses: jakejarvis/s3-sync-action@0.5.1
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}-${{ steps.branch-name.outputs.current_branch }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-north-1"
+          # SOURCE_DIR: "public" # optional: defaults to entire repository
