@@ -19,6 +19,6 @@ I used the following to do stuff so far:
 ## ToDos
 
 - [ ] terraform ALL the infra
-- [ ] every branch gets a published subdomain automagically
-- [ ] switch away from writting crude HTML/CSS to some fancy markdown to HTML tool
+- [ ] every branch gets a published subdomain automagically
+- [ ] switch away from writting crude HTML/CSS to some fancy markdown to HTML tool
 - [ ] start some sort of blog
