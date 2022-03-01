@@ -18,8 +18,10 @@ jobs:
           else
             BUCKET=${{ steps.branch-name.outputs.current_branch }}.${{ secrets.AWS_S3_BUCKET }}
           fi
-          aws s3 mb s3://$BUCKET
-          echo "::set-output name=BUCKET::$BUCKET"
+          if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+            aws s3 mb s3://${BUCKET}
+          fi
+          echo "::set-output name=BUCKET::${BUCKET}"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
