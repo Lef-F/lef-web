@@ -42,7 +42,7 @@ jobs:
           dest-s3-bucket: ${{ steps.create-s3-bucket.outputs.BUCKET }}
       - name: Update S3 Bucket Policy & Make Public
         run: |
-          cat {{ $github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
+          cat ${{ github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
           aws s3api put-bucket-policy --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }} --policy file://policy.json
           aws s3api delete-public-access-block --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }}
       - name: Update DNS Records
