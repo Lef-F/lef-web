@@ -40,9 +40,10 @@ jobs:
         uses: jonelantha/gatsby-s3-action@v1
         with:
           dest-s3-bucket: ${{ steps.create-s3-bucket.outputs.BUCKET }}
-      - name: Update S3 Bucket Policy & Make Public
+      - name: Update S3 Bucket to Website, CloudFlare Policy & Make Public
         run: |
           cat ${{ github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
+          aws s3 website s3://${{ steps.create-s3-bucket.outputs.BUCKET }}/ --index-document index.html --error-document 404.html
           aws s3api put-bucket-policy --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }} --policy file://policy.json
           aws s3api delete-public-access-block --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }}
       - name: Update DNS Records
