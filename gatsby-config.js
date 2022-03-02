@@ -1,8 +1,8 @@
 /** @type {import('gatsby').GatsbyConfig} */
 module.exports = {
   siteMetadata: {
-      title: ``,
-    siteUrl: `https://www.yourdomain.tld`
+      title: `Lef Filippakis`,
+    siteUrl: `https://lef.fyi`
   },
   plugins: ["gatsby-plugin-sitemap", {
     resolve: 'gatsby-plugin-manifest',
