@@ -5,6 +5,10 @@ on: push
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
     steps:
       - uses: actions/checkout@master
       - name: Get branch name
@@ -26,10 +30,6 @@ jobs:
             aws s3 mb s3://${BUCKET}
           fi
           echo "::set-output name=BUCKET::${BUCKET}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -40,3 +40,17 @@ jobs:
         uses: jonelantha/gatsby-s3-action@v1
         with:
           dest-s3-bucket: ${{ steps.create-s3-bucket.outputs.BUCKET }}
+      - name: Update S3 Bucket Policy & Make Public
+        run: |
+          cat {{ $github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
+          aws s3api put-bucket-policy --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }} --policy file://policy.json
+          aws s3api delete-public-access-block --bucket ${{ steps.create-s3-bucket.outputs.BUCKET }}
+      - name: Update DNS Records
+        run: |
+          if ! [ "${{ steps.branch-name.outputs.current_branch }}" = "main" ]; then
+            curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
+                -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+                -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+                -H "Content-Type: application/json" \
+                --data '{"type":"CNAME","name":"${{ steps.branch-name.outputs.current_branch }}","content":"${{ steps.branch-name.outputs.current_branch }}.${{ secrets.AWS_S3_BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com","ttl":1,"priority":10,"proxied":true}'
+          fi
