@@ -7,13 +7,20 @@ You look dashing ❤️
 
 [Risky click of the day?](https://lef.fyi/)
 
+## Dev Setup
+
+1. `npm install clean-css-cli -g` in order to produce the minified version of the CSS files.
+    - `cleancss -o src/tufte.min.css src/tufte.css`
+
+
 ## Resources
 
 I used the following to do stuff so far:
 
 - [AWS S3 static web hosting with CloudFlare](https://support.cloudflare.com/hc/en-us/articles/360037983412-Configuring-an-Amazon-Web-Services-static-site-to-use-Cloudflare)
 - [AWS S3 static web hosting _clicky-clicky_ walkthrough](https://docs.aws.amazon.com/AmazonS3/latest/userguide/website-hosting-custom-domain-walkthrough.html)
-- [more AWS S3 web hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
+- [More AWS S3 web hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
+- Color palette generated from [huemint](https://huemint.com/brand-2/#palette=f9fefc-443b36-dc5945)
 
 
 ## ToDos
