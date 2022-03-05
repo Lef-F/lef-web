@@ -21,6 +21,7 @@ I used the following to do stuff so far:
 - [AWS S3 static web hosting _clicky-clicky_ walkthrough](https://docs.aws.amazon.com/AmazonS3/latest/userguide/website-hosting-custom-domain-walkthrough.html)
 - [More AWS S3 web hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
 - Color palette generated from [huemint](https://huemint.com/brand-2/#palette=f9fefc-443b36-dc5945)
+- CSS style from [Edward Tufte](https://edwardtufte.github.io/tufte-css/)
 
 
 ## ToDos
