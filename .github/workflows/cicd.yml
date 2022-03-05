@@ -1,8 +1,9 @@
 name: Upload Website
 
-on: push
-  paths:
-    - src/**
+on:
+  push:
+    paths:
+      - src/**
 
 jobs:
   deploy:
