@@ -1,0 +1,77 @@
+{
+	// Snippets to help the process of producing content on the https://github.com/Lef-F/lef-web project
+	// which contains the source code for https://lef.fyi/ and its subdomains.
+	// Currently certain HTML snippets are not included here as they are provided by Emmet.
+	// Find more about it at https://code.visualstudio.com/docs/editor/emmet
+	"Link": {
+		"scope": "html",
+		"prefix": ["<a", "href", "link"],
+		"body": [
+			"<a href=\"${1:URL}\"${2| target=\"_blank\" rel=\"noopener noreferrer\", |}>${3:TEXT}</a>"
+		],
+		"description": "Create an HTML link that may open on the current page or a new tab."
+	},
+	"Blockquotes": {
+		"scope": "html",
+		"prefix": ["<blockquote>", "<quote>"],
+		"body": [
+			"<blockquote>",
+			"\t${1:Quote content}",
+			"</blockquote>"
+		]
+	},
+	"Section": {
+		"scope": "html",
+		"prefix": ["<section>"],
+		"body": [
+			"<section>",
+			"\t${1:Section content}",
+			"</section>"
+		],
+		"description": "Create new section."
+	},
+	"List": {
+		"scope": "html",
+		"prefix": ["<list>", "<ul>"],
+		"body": [
+			"<ul>",
+			"\t<il>${1:List item}</il>",
+			"</ul>"
+		],
+		"description": "Create an unodered list."
+	},
+	"Sidenote": {
+		"scope": "html",
+		"prefix": ["<label>", "<sidenote>"],
+		"body": [
+			"<label class=\"margin-toggle sidenote-number\"></label>",
+			"<span class=\"sidenote\"><em>${1:Sidenote content}</em></span>"
+		],
+		"description": "Insert a numbered sidenote."
+	},
+	"New Post Template": {
+		"scope": "html",
+		"prefix": ["<body>", "<head>", "<title>"],
+		"body": [
+			"<!DOCTYPE html>",
+			"<html>",
+			"<head>",
+			"<meta charset=\"UTF-8\">",
+			"<title>Lef adores you ❤️</title>",
+			"<link rel=\"icon\" href=\"/favicon.ico\" type=\"image/x-icon\">",
+			"<link rel=\"stylesheet\" href=\"/tufte.min.css\"/>",
+			"</head>",
+			"<body>",
+			"\t<section>",
+			"\t\t<h1>${1:Post title}</h1>",
+			"\t\t<p>${2:First paragraph}</p>",
+			"\t</section>",
+			"\t<blockquote>",
+			"\t\t<footer><a href=\"/\">Return home</a></footer>",
+			"\t</blockquote>",
+			"</body>",
+			"</html>"
+		],
+		"description": "Start new post with the standard template."
+	}
+}
