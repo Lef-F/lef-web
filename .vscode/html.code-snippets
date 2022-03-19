@@ -44,10 +44,24 @@
 		"scope": "html",
 		"prefix": ["<label>", "<sidenote>"],
 		"body": [
-			"<label class=\"margin-toggle sidenote-number\"></label>",
+			"<label class=\"sidenote-number\"></label>",
 			"<span class=\"sidenote\"><em>${1:Sidenote content}</em></span>"
 		],
 		"description": "Insert a numbered sidenote."
+	},
+	"Margin note": {
+		"scope": "html",
+		"prefix": ["<label>", "<marginnote>"],
+		"body": [
+			"<label for=\"${1:give-a-unique-name}\" class=\"margin-toggle sidenote-number\">⊕</label>",
+            "<input type=\"checkbox\" id=\"${1:give-a-unique-name}\" class=\"margin-toggle\">",
+            "<span class=\"marginnote sidenote\">",
+            "\t<em>",
+			"\t\t${2:Content of the margin note}",
+            "\t</em>",
+            "</span>",
+		],
+		"description": "Insert a numbered margin note."
 	},
 	"New Post Template": {
 		"scope": "html",
