@@ -298,7 +298,7 @@ a:link,
 }
 
 /* Adds dark mode */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   a:link,
   .tufte-underline,
   .hover-tufte-underline:hover {
@@ -307,7 +307,7 @@ a:link,
       0.09em 0 #443b3605, -0.09em 0 #443b3605, 0.12em 0 #443b3605,
       -0.12em 0 #443b3605, 0.15em 0 #443b3605, -0.15em 0 #443b3605;
   }
-}
+} */
 
 a:link::selection,
 a:link::-moz-selection {
