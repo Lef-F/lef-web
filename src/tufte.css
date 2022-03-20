@@ -509,6 +509,18 @@ label.margin-toggle:not(.sidenote-number) {
     display: none;
   }
 
+  .margin-toggle-button {
+    display: none;
+  }
+
+  label.sidenote-number {
+    display: none;
+  }
+
+  .sidenote:before {
+    display: none;
+  }
+
   .margin-toggle:checked + .sidenote,
   .margin-toggle:checked + .marginnote {
     display: block;
