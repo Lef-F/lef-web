@@ -31,6 +31,13 @@ jobs:
             aws s3 mb s3://${BUCKET}
           fi
           echo "::set-output name=BUCKET::${BUCKET}"
+      - name: Sync repo to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ steps.create-s3-bucket.outputs.BUCKET }}
+          SOURCE_DIR: "src"
       - name: Update S3 Bucket to Website, CloudFlare Policy & Make Public
         run: |
           cat ${{ github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
