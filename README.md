@@ -5,12 +5,15 @@ Who knows?
 Not me, lol.
 You look dashing ❤️
 
-[Risky click of the day?](https://lef.fyi/)
+Find me at [lef.fyi](https://lef.fyi/) 👾
 
 ## Dev Setup
 
-1. `npm install clean-css-cli -g` in order to produce the minified version of the CSS files.
+1. Run `npm install clean-css-cli -g` in order to produce the minified version of the CSS files.
     - `cleancss -o src/tufte.min.css src/tufte.css`
+    - Needs to be run only if you made changes to `src/tufte.css`
+2. _(Optional)_ Install the necessary Python tools by running [`poetry install`](https://python-poetry.org/) inside the `tools/` folder.
+    - _Note: There's currently no other dependencies than [`black`](https://black.readthedocs.io/en/stable/)_
 
 ## Resources
 
