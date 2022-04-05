@@ -4,17 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lef adores you ❤️</title>
-<!-- 
-    TODO: These types of hrefs should be to the root "/".
-    Keeping them relative for now because it's easier to debug locally.
--->
-<link rel="icon" href="./favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="./tufte.min.css"/>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/tufte.min.css"/>
 </head>
 <body>
-    <img class="full-width" src="./img/lef_eyes_2021-06.jpg">
+    <a href="/">
+        <img class="full-width" src="/img/lef_eyes_2021-06.jpg">
+    </a>
     <!-- hack to push the content under the properly sized banner image, pls help me -->
-    <img style="position: relative; opacity: 0;" src="./img/lef_eyes_2021-06.jpg">
+    <img style="position: relative; opacity: 0; z-index: -9;" src="/img/lef_eyes_2021-06.jpg">
     <section>
         <h1>Heyoh! 🕺💃</h1>
         <p>
@@ -31,8 +29,8 @@
     <section>
         <h2>📚 Lef's Blog Posts</h2>
         <ul>
-            <li><a href="./pages/posts/20220319-a-very-poetic-python.html">A very poetic Python 🐍</a></li>
-            <li><a href="./pages/posts/20220305-my-first-post.html">My first post?</a></li>
+            <li><a href="/pages/posts/20220319-a-very-poetic-python.html">A very poetic Python 🐍</a></li>
+            <li><a href="/pages/posts/20220305-my-first-post.html">My first post?</a></li>
         </ul>
     </section>
     <section>
