@@ -58,3 +58,10 @@ jobs:
                 -H "Content-Type: application/json" \
                 --data '{"type":"CNAME","name":"${{ steps.branch-name.outputs.current_branch }}","content":"${{ steps.branch-name.outputs.current_branch }}.${{ secrets.AWS_S3_BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com","ttl":1,"priority":10,"proxied":true}'
           fi
+      - name: Purge Cloudflare cache
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
