@@ -30,5 +30,5 @@ I used the following to do stuff so far:
 
 - [ ] terraform ALL the infra
 - [x] every branch gets a published subdomain automagically
-- [ ] switch away from writting crude HTML/CSS to some fancy markdown to HTML tool
+- [ ] switch away from writing crude HTML/CSS to some fancy markdown to HTML tool
 - [ ] start some sort of blog

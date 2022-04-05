@@ -71,4 +71,4 @@ sitemap_file = os.path.join(args.src, "sitemap.txt")
 with open(sitemap_file, "w") as f:
     f.write("\n".join(website_paths))
 
-print(f"They have succesfully been written to {sitemap_file}")
+print(f"They have successfully been written to {sitemap_file}")
