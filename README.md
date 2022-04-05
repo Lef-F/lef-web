@@ -9,8 +9,9 @@ Find me at [lef.fyi](https://lef.fyi/) 👾
 
 ## Dev Setup
 
-1. Run `npm install clean-css-cli -g` in order to produce the minified version of the CSS files.
-    - `cleancss -o src/tufte.min.css src/tufte.css`
+1. Run `npm install` to install the dev dependencies that will make your life easier.
+2. Run `npm run start` in order to start the local server so you can see your changes IRL over at [127.0.0.1:8080](http://127.0.0.1:8080)
+3. Run `npm run cssmin` in order to update the minified version of the CSS files.
     - Needs to be run only if you made changes to `src/tufte.css`
 2. _(Optional)_ Install the necessary Python tools by running [`poetry install`](https://python-poetry.org/) inside the `tools/` folder.
     - _Note: There's currently no other dependencies than [`black`](https://black.readthedocs.io/en/stable/)_
@@ -28,6 +29,6 @@ I used the following to do stuff so far:
 ## ToDos
 
 - [ ] terraform ALL the infra
-- [ ] every branch gets a published subdomain automagically
+- [x] every branch gets a published subdomain automagically
 - [ ] switch away from writting crude HTML/CSS to some fancy markdown to HTML tool
 - [ ] start some sort of blog
