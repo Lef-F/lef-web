@@ -196,6 +196,7 @@ div.epigraph > blockquote > footer > cite {
 /* end chapter epigraphs styles */
 
 blockquote {
+  width: 55%;
   font-size: 1.4rem;
 }
 
@@ -389,6 +390,7 @@ pre > code {
   font-size: 1rem;
   line-height: 1.42;
   -webkit-text-size-adjust: 100%; /* Prevent adjustments of font size after orientation changes in iOS. See https://github.com/edwardtufte/tufte-css/issues/81#issuecomment-261953409 */
+  background-color: #443b3611;
 }
 
 .sans > code {
@@ -493,6 +495,7 @@ label.margin-toggle:not(.sidenote-number) {
   blockquote {
     margin-left: 1.5em;
     margin-right: 0em;
+    width: auto;
   }
 
   blockquote p,
