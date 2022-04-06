@@ -58,9 +58,9 @@
       "</head>",
       "<body>",
       "\t<a href=\"/\">",
-      "\t\t<img class=\"full-width\" src=\"/img/lef_eyes_2021-06.jpg\">",
+      "\t\t<img class=\"full-width\" src=\"/media/00-common/lef_eyes_2021-06.jpg\">",
       "\t</a>",
-      "\t<img style=\"position: relative; opacity: 0; z-index: -9;\" src=\"/img/lef_eyes_2021-06.jpg\">",
+      "\t<img style=\"position: relative; opacity: 0; z-index: -9;\" src=\"/media/00-common/lef_eyes_2021-06.jpg\">",
       "\t<article>",
       "\t\t<section>",
       "\t\t\t<h1>${1:Post title}</h1>",
@@ -72,5 +72,10 @@
       "</html>"
     ],
     "description": "Start new post with the standard template."
+  },
+  "Paragraph": {
+    "scope": "html",
+    "prefix": ["<paragraph>"],
+    "body": ["<p>", "\t${1:Write something amazing, again 😻}", "</p>"]
   }
 }
