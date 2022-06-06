@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@master
         with:
           lfs: true
+          submodules: true
       - name: Install hugo
         run: sudo apt-get install hugo
       - name: Build website
@@ -44,7 +45,7 @@ jobs:
           args: --acl public-read --follow-symlinks --delete
         env:
           AWS_S3_BUCKET: ${{ steps.create-s3-bucket.outputs.BUCKET }}
-          SOURCE_DIR: "src"
+          SOURCE_DIR: "public"
       - name: Rename example.com to our domain in policy.json
         run: |
           cat ${{ github.workspace }}/.github/workflows/policy.json |sed s/www.example.com/${{ steps.create-s3-bucket.outputs.BUCKET }}/g > policy.json
