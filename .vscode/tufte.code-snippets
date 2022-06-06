@@ -1,0 +1,30 @@
+{
+  // Snippets to help the process of producing content on the https://github.com/Lef-F/lef-web project
+  // which contains the source code for https://lef.fyi/ and its subdomains.
+  // Here are some useful markdown snippets.
+  // The are mostly shortcuts for features listed here: https://github.com/slashformotion/hugo-tufte#shortcodes
+  "Link": {
+    "scope": "markdown",
+    "prefix": ["link", "url"],
+    "body": ["[${1:TEXT}](${2:URL})"],
+    "description": "Create a link."
+  },
+  "Margin note": {
+    "scope": "markdown",
+    "prefix": ["marginnote"],
+    "body": ["{{< marginnote >}}${1:Note}{{< /marginnote >}}"],
+    "description": "Insert an nnumbered margin note."
+  },
+  "Side note": {
+    "scope": "markdown",
+    "prefix": ["sidenote"],
+    "body": ["{{< sidenote >}}${1:Note}{{< /sidenote >}}"],
+    "description": "Insert a numbered side note."
+  },
+  "Block quote": {
+    "scope": "markdown",
+    "prefix": ["blockquote", "quote"],
+    "body": "{{< blockquote cite=\"${1:URL}\" footer=\"${2:NAME}\" >}}${3:TEXT}{{< /blockquote >}}",
+    "description": "Insert a block quote."
+  }
+}

@@ -13,6 +13,10 @@ jobs:
       - uses: actions/checkout@master
         with:
           lfs: true
+      - name: Install hugo
+        run: sudo apt-get install hugo
+      - name: Build website
+        run: hugo
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v5.1

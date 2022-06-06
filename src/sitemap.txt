@@ -1,8 +1,0 @@
-https://lef.fyi/favicon.ico
-https://lef.fyi/index.html
-https://lef.fyi/tufte.min.css
-https://lef.fyi/tufte.css
-https://lef.fyi/robots.txt
-https://lef.fyi/pages/posts/20220305-my-first-post.html
-https://lef.fyi/pages/posts/20220319-a-very-poetic-python.html
-https://lef.fyi/sitemap.txt
