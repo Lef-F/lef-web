@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run start)",
+      "Bash(npm run cssmin)",
+      "Bash(npx http-server*)",
+      "Bash(cd tools && poetry run python*)"
+    ]
+  }
+}
