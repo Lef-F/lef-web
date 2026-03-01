@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>How this website is built | Lef adores you ❤️</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/tufte.min.css"/>
+</head>
+<body>
+    <a href="/">
+        <img class="full-width" src="/media/00-common/lef_eyes_2021-06.jpg">
+    </a>
+    <img style="position: relative; opacity: 0; z-index: -9;" src="/media/00-common/lef_eyes_2021-06.jpg">
+    <article>
+        <section>
+            <h1>How this website is built 🏗️</h1>
+            <p>
+                Every now and then someone asks me what framework I use for this website.
+                The answer is always the same: <em>none</em>.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="framework-none" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="framework-none" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        No React, no Next.js, no Hugo, no Jekyll, no Gatsby, no Astro, no Eleventy.
+                        Just a human and a text editor.
+                        Well, and now an AI too. More on that later.
+                    </em>
+                </span>
+                This entire website is hand-written HTML.
+                Every single page. Every single tag. Every single sidenote you're reading right now.
+            </p>
+            <p>
+                You might wonder <em>why on earth</em> someone would do that in 2026.
+                And that's a fair question.
+                The short answer is that I find it fun,
+                and the long answer is that I believe the web got unnecessarily complicated
+                for the kind of thing most personal websites actually need.
+            </p>
+            <p>
+                So let me walk you through the entire stack, from the CSS to the cloud.
+                Grab a beverage of your preference and let's go! ☕
+            </p>
+        </section>
+
+        <section>
+            <h2>The design: Tufte CSS</h2>
+            <p>
+                The visual identity of this site is built on
+                <a href="https://edwardtufte.github.io/tufte-css/" target="_blank" rel="noopener noreferrer">Tufte CSS</a>,
+                a stylesheet inspired by the work of
+                <a href="https://en.wikipedia.org/wiki/Edward_Tufte" target="_blank" rel="noopener noreferrer">Edward Tufte</a>,
+                the godfather of data visualization.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="tufte-books" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="tufte-books" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        If you've never read
+                        <a href="https://www.edwardtufte.com/book/the-visual-display-of-quantitative-information/" target="_blank" rel="noopener noreferrer">
+                            "The Visual Display of Quantitative Information"
+                        </a>
+                        I highly recommend it. It'll change how you look at charts forever.
+                    </em>
+                </span>
+                Tufte's design philosophy values clarity, minimalism, and a high data-to-ink ratio.
+                Translated to web design, that means: wide margins, serif typography, and sidenotes instead of footnotes.
+            </p>
+            <p>
+                The font you're reading is
+                <a href="https://edwardtufte.github.io/et-book/" target="_blank" rel="noopener noreferrer">ET Book</a>,
+                a digitization of the typeface used in Tufte's books.
+                It's served directly from the <code>et-book/</code> directory alongside the HTML &mdash;
+                no Google Fonts, no CDN, no third-party requests.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="privacy-fonts" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="privacy-fonts" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This is partly a privacy choice. Loading fonts from Google means Google gets a ping
+                        every time someone visits your site.
+                        Self-hosting fonts is trivially easy and avoids that entirely.
+                    </em>
+                </span>
+                Your browser loads everything from one place.
+            </p>
+            <p>
+                I've also made some tweaks to the original Tufte CSS.
+                The background is a very subtle mint-ish white (<code>#f9fefc</code>),
+                the text is a warm dark brown (<code>#443b36</code>),
+                and links get a nice red accent (<code>#dc5945</code>) on hover.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="color-palette" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="color-palette" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I spent an unreasonable amount of time choosing these three colors.
+                        Then I found
+                        <a href="https://huemint.com/" target="_blank" rel="noopener noreferrer">Huemint</a>
+                        and realized AI could have done it for me in seconds.
+                        Classic.
+                    </em>
+                </span>
+            </p>
+        </section>
+
+        <section>
+            <h2>Sidenotes: the best feature you didn't know you needed</h2>
+            <p>
+                The thing that makes Tufte CSS special is the sidenote system.
+                Instead of footnotes that force you to scroll down and lose your place,
+                sidenotes sit right there in the margin, next to the text they annotate.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="sidenote-meta" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="sidenote-meta" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Yes, I am using a sidenote to explain sidenotes.
+                        How delightfully meta of me. 🪞
+                    </em>
+                </span>
+            </p>
+            <p>
+                The best part? The entire system works without a single line of JavaScript.
+                It's pure HTML and CSS. On desktop, the notes float in the right margin.
+                On mobile, they collapse behind a little <code>⊕</code> toggle button.
+                That toggle is just a hidden <code>&lt;input type="checkbox"&gt;</code>
+                paired with a <code>&lt;label&gt;</code>.
+                When you tap the label, the checkbox toggles, and CSS does the rest.
+            </p>
+            <p>
+                Here's what the markup looks like:
+            </p>
+            <blockquote>
+                <code>&lt;label class="sidenote-number"&gt;&lt;/label&gt;</code><br>
+                <code>&lt;label for="unique-id" class="margin-toggle"&gt;⊕&lt;/label&gt;</code><br>
+                <code>&lt;input type="checkbox" id="unique-id" class="margin-toggle"&gt;</code><br>
+                <code>&lt;span class="marginnote sidenote"&gt;Your note here&lt;/span&gt;</code>
+            </blockquote>
+            <p>
+                It looks verbose when you read the source, yes.
+                But it means the page is fully functional with CSS disabled,
+                gracefully degrades on ancient browsers,
+                and doesn't need a build step to work.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="no-js-pride" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="no-js-pride" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        There is exactly zero JavaScript on this entire website.
+                        Not even analytics. I don't track you. You're welcome. 🫡
+                    </em>
+                </span>
+            </p>
+        </section>
+
+        <section>
+            <h2>The banner hack 🙈</h2>
+            <p>
+                You know that big photo of my eyes at the top of every page?
+                It's a full-width image that stretches edge to edge.
+                Tufte CSS provides a <code>.full-width</code> class for this,
+                which sets <code>max-width: none</code> to let the image
+                escape the text column.
+            </p>
+            <p>
+                But here's the embarrassing part.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="banner-hack" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="banner-hack" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        If you're a frontend developer reading this,
+                        I apologize in advance. I know this is cursed.
+                        PRs are welcome.
+                    </em>
+                </span>
+                The content below the banner was overlapping with the image because
+                the full-width image doesn't participate in the normal document flow the way I needed it to.
+                My very professional solution?
+                I added a <em>second invisible copy</em> of the same image right after the visible one.
+            </p>
+            <blockquote>
+                <code>&lt;img style="position: relative; opacity: 0; z-index: -9;"
+                src="/media/00-common/lef_eyes_2021-06.jpg"&gt;</code>
+            </blockquote>
+            <p>
+                It's invisible, it sits behind everything, and its only job is to push the content
+                down by exactly the right amount.
+                Does it work? <em>Yes.</em>
+                Is it elegant? <em>Absolutely not.</em>
+                Will I fix it someday? <em>...probably not.</em> 🤷
+            </p>
+        </section>
+
+        <section>
+            <h2>Deployment: from <code>git push</code> to the cloud ☁️</h2>
+            <p>
+                The deployment pipeline is my favorite part because once I set it up, I never had to think about it again.
+                Here's how it works:
+            </p>
+            <p>
+                Every time I push changes to the <code>src/</code> directory on GitHub,
+                a
+                <a href="https://github.com/features/actions" target="_blank" rel="noopener noreferrer">GitHub Actions</a>
+                workflow kicks in.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="cicd-trigger" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="cicd-trigger" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The workflow only triggers on changes to <code>src/</code> or <code>.github/workflows/</code>.
+                        So I can mess around with documentation, tools, or configuration
+                        without accidentally deploying anything.
+                    </em>
+                </span>
+                It takes the entire <code>src/</code> directory and syncs it to an
+                <a href="https://aws.amazon.com/s3/" target="_blank" rel="noopener noreferrer">AWS S3</a> bucket
+                configured for static website hosting.
+            </p>
+            <p>
+                In front of S3 sits
+                <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare</a>,
+                handling DNS, HTTPS, and caching.
+                The last step of every deploy purges the Cloudflare cache so that
+                you always see the latest version of the site.
+            </p>
+            <p>
+                But here's the part that really sparks joy.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="branch-deploy" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="branch-deploy" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This is essentially a poor man's
+                        <a href="https://vercel.com/docs/deployments/preview-deployments" target="_blank" rel="noopener noreferrer">Vercel preview deployments</a>,
+                        except it costs approximately nothing and runs on S3.
+                    </em>
+                </span>
+                When I push to a branch that isn't <code>main</code>,
+                the pipeline creates a <em>separate</em> S3 bucket and a Cloudflare CNAME record for it.
+                So if I push to a branch called <code>cool-feature</code>,
+                the site goes live at <code>cool-feature.lef.fyi</code>.
+                Automagically.
+                No manual DNS config, no separate hosting setup.
+            </p>
+            <p>
+                In fact, if you're reading this on a subdomain right now,
+                that's exactly what happened.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="inception" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="inception" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This post was originally deployed to a feature branch subdomain
+                        before being merged to main.
+                        A blog post about the deployment system,
+                        deployed by the deployment system,
+                        to verify the deployment system.
+                        Inception. 🎬
+                    </em>
+                </span>
+            </p>
+        </section>
+
+        <section>
+            <h2>Images and Git LFS 📸</h2>
+            <p>
+                One thing you don't want is a Git repository bloated with megabytes of images.
+                Every <code>.png</code>, <code>.jpg</code>, and <code>.jpeg</code>
+                in this repo is tracked with
+                <a href="https://git-lfs.github.com/" target="_blank" rel="noopener noreferrer">Git LFS</a>
+                (Large File Storage).
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="lfs-how" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="lfs-how" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Git LFS replaces large files with tiny pointer files in the repo,
+                        while storing the actual content on a remote server.
+                        Your <code>git clone</code> stays fast, and the real files
+                        are pulled only when you need them.
+                    </em>
+                </span>
+            </p>
+            <p>
+                Media files are organized by post.
+                Shared assets like the banner live in <code>src/media/00-common/</code>,
+                while each post gets its own directory matching its filename:
+                <code>src/media/20260301-how-this-website-is-built/</code>.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="media-org" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="media-org" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The <code>00-common</code> prefix ensures shared assets sort first.
+                        The date prefix on everything else keeps things chronologically sorted.
+                        Small things, but they add up when you're navigating a file tree.
+                    </em>
+                </span>
+            </p>
+        </section>
+
+        <section>
+            <h2>The little Python helper 🐍</h2>
+            <p>
+                Tucked away in the <code>tools/</code> directory there's a tiny Python script
+                that generates the <code>sitemap.txt</code> file.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="sitemap-tool" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="sitemap-tool" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        A sitemap tells search engines what pages exist on your site.
+                        The <code>.txt</code> format is the simplest kind &mdash;
+                        just a list of URLs, one per line.
+                    </em>
+                </span>
+                It crawls the <code>src/</code> directory, turns every file into a full URL,
+                and writes it all out. You can exclude paths too,
+                like the font files that search engines definitely don't need to index.
+            </p>
+            <blockquote>
+                <code>cd tools && uv run python src/sitemap_generator.py https://lef.fyi ../src --except "et-book"</code>
+            </blockquote>
+            <p>
+                It's the only Python in the entire project, managed with
+                <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer">uv</a>
+                in its own little corner.
+                A small script doing one thing well. Unix philosophy and all that. 🐧
+            </p>
+        </section>
+
+        <section>
+            <h2>Teaching an AI to help 🤖</h2>
+            <p>
+                The newest addition to this website's toolbox is a set of files that
+                teach AI assistants how the project works.
+                There's a <code>CLAUDE.md</code> at the root with the overall developer guide,
+                and a <code>.claude/</code> directory with context files and step-by-step skills.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="claude-scaffold" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="claude-scaffold" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Think of it like onboarding documentation, except the new hire
+                        is a large language model that reads really fast
+                        and never asks you to repeat yourself.
+                    </em>
+                </span>
+            </p>
+            <p>
+                The idea is simple: if you give an AI enough context about your project's conventions,
+                file structure, and common tasks, it can help you
+                without constantly asking <em>"what framework is this?"</em> or
+                <em>"where do the blog posts go?"</em>.
+                It already knows.
+            </p>
+            <p>
+                For example, there's a skill file that describes exactly how to create a new blog post:
+                what to name the file, what template to start from, where to put the media,
+                how to update the homepage, and how to regenerate the sitemap.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="ai-wrote-this" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="ai-wrote-this" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Full disclosure: this very post was written with the help of
+                        an AI that was using those exact skill files.
+                        It's turtles all the way down. 🐢
+                    </em>
+                </span>
+            </p>
+            <p>
+                The meta beauty of it is that the AI helped write the scaffolding
+                that teaches it how to help.
+                And then it used that scaffolding to write a blog post
+                about the scaffolding.
+                We've achieved some kind of documentation ouroboros. 🐍
+            </p>
+        </section>
+
+        <section>
+            <h2>Why not just use a static site generator?</h2>
+            <p>
+                Look, I get it. Tools like Hugo, Jekyll, or Astro exist for a reason.
+                They're great for people who want to write in Markdown and have a build step
+                handle the templating. For many projects that's the right call.
+            </p>
+            <p>
+                But for this little corner of the internet, I like the directness.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="view-source" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="view-source" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Try it: right-click, "View Page Source".
+                        What you see is what I wrote.
+                        No build artifacts, no minified bundles, no generated divs.
+                        Just HTML the way Tim Berners-Lee intended.
+                    </em>
+                    ❤️
+                </span>
+                What I write is exactly what gets deployed.
+                There's no mystery layer between my editor and your browser.
+                The entire "build process" is running one CSS minification command.
+                That's it.
+            </p>
+            <p>
+                There's also something satisfying about a website that would work perfectly fine
+                if you opened the HTML files directly from disk.
+                No server needed, no build needed, no dependencies needed.
+                Just files.
+            </p>
+        </section>
+
+        <section>
+            <h2>The full stack, summarized</h2>
+            <p>
+                For the skimmers among you, here's the whole thing at a glance:
+            </p>
+            <ul>
+                <li><strong>Content</strong>: Hand-written HTML</li>
+                <li><strong>Styling</strong>: Tufte CSS + ET Book font (self-hosted)</li>
+                <li><strong>Interactivity</strong>: CSS-only sidenote toggles (zero JavaScript)</li>
+                <li><strong>Version control</strong>: Git + Git LFS for images</li>
+                <li><strong>Hosting</strong>: AWS S3 (static website)</li>
+                <li><strong>CDN &amp; DNS</strong>: Cloudflare</li>
+                <li><strong>Deployment</strong>: GitHub Actions (auto-deploy on push)</li>
+                <li><strong>Preview</strong>: Automatic branch subdomains</li>
+                <li><strong>SEO</strong>: Python-generated sitemap + <code>robots.txt</code></li>
+                <li><strong>AI assistance</strong>: Claude Code with project-specific scaffolding</li>
+            </ul>
+            <p>
+                Total JavaScript: <strong>0 bytes</strong>.
+                Total frameworks: <strong>0</strong>.
+                Total joy: <strong>immeasurable</strong>. 🕺
+            </p>
+        </section>
+
+        <section>
+            <p>
+                Thanks for reading! If you want to peek behind the curtain,
+                the entire source code is on
+                <a href="https://github.com/Lef-F/lef-web" target="_blank" rel="noopener noreferrer">GitHub</a>.
+                PRs welcome, especially if you know how to fix that banner image hack. 😅
+            </p>
+        </section>
+    </article>
+    <footer><a href="/">Return home</a></footer>
+</body>
+</html>
