@@ -39,23 +39,16 @@ cd tools && uv run python src/sitemap_generator.py https://lef.fyi ../src --exce
 Every page follows this structure:
 - `<head>` with viewport meta, charset, title (`Page Title | Lef adores you ❤️`), favicon, tufte.min.css
 - Banner: clickable full-width image linking to `/` + invisible duplicate for spacing
-- Content in `<article>` > `<section>` elements
+- Blog posts: content in `<article>` > `<section>` elements
+- Homepage: uses `<section>` elements directly (no `<article>` wrapper)
 - `<footer>` with "Return home" link
 
-Sidenotes use the Tufte CSS checkbox toggle pattern (no JS):
-```html
-<label class="sidenote-number"></label>
-<label for="unique-id" class="margin-toggle">⊕</label>
-<input type="checkbox" id="unique-id" class="margin-toggle">
-<span class="marginnote sidenote"><em>Note content</em></span>
-```
-
-Each sidenote needs a unique `id`/`for` pair. See `.claude/context/tufte-patterns.md` for full reference.
+Sidenotes use the Tufte CSS checkbox toggle pattern (no JS). Each needs a unique `id`/`for` pair.
+See `.claude/context/tufte-patterns.md` for all HTML patterns (sidenotes, images, blockquotes, links, etc).
 
 ### Content Style
 - Warm, personal tone with emoji
 - Tufte philosophy: prefer sidenotes over footnotes, value clean typography
-- Images can go inline or in sidenotes via `<img>` inside the `<span class="marginnote sidenote">`
 
 ### CSS
 - Edit `src/tufte.css` for styling changes
@@ -70,7 +63,7 @@ Automated via GitHub Actions (`.github/workflows/cicd.yml`):
 - **Trigger**: Push to `src/` or `.github/workflows/`
 - **main branch** → production S3 bucket (lef.fyi)
 - **Other branches** → `{branch}.lef.fyi` subdomain (auto-created)
-- Pipeline: checkout with LFS → S3 sync → configure static hosting → Cloudflare DNS + cache purge
+- Pipeline: checkout with LFS → configure bucket + policy → S3 sync → Cloudflare DNS + cache purge
 
 ## Git
 

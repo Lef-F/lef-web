@@ -38,9 +38,9 @@ Each sidenote needs a **unique id** within the page. Place inline within a `<p>`
 
 ```html
 <label class="sidenote-number"></label>
-<label for="unique-id" class="margin-toggle">⊕</label>
+<label id="margin-toggle-button" for="unique-id" class="margin-toggle">⊕</label>
 <input type="checkbox" id="unique-id" class="margin-toggle">
-<span class="marginnote sidenote">
+<span class="sidenote marginnote">
     <em>Note content here.</em>
 </span>
 ```
@@ -52,9 +52,9 @@ Each sidenote needs a **unique id** within the page. Place inline within a `<p>`
 
 ```html
 <label class="sidenote-number"></label>
-<label for="unique-id" class="margin-toggle">⊕</label>
+<label id="margin-toggle-button" for="unique-id" class="margin-toggle">⊕</label>
 <input type="checkbox" id="unique-id" class="margin-toggle">
-<span class="marginnote sidenote">
+<span class="sidenote marginnote">
     <img src="/media/YYYYMMDD-slug/image.png">
 </span>
 ```

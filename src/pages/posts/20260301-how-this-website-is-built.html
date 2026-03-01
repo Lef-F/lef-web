@@ -19,9 +19,9 @@
                 Every now and then someone asks me what framework I use for this website.
                 The answer is always the same: <em>none</em>.
                 <label class="sidenote-number"></label>
-                <label for="framework-none" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="framework-none" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="framework-none" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         No React, no Next.js, no Hugo, no Jekyll, no Gatsby, no Astro, no Eleventy.
                         Just a human and a text editor.
@@ -53,9 +53,9 @@
                 <a href="https://en.wikipedia.org/wiki/Edward_Tufte" target="_blank" rel="noopener noreferrer">Edward Tufte</a>,
                 the godfather of data visualization.
                 <label class="sidenote-number"></label>
-                <label for="tufte-books" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="tufte-books" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="tufte-books" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         If you've never read
                         <a href="https://www.edwardtufte.com/book/the-visual-display-of-quantitative-information/" target="_blank" rel="noopener noreferrer">
@@ -74,9 +74,9 @@
                 It's served directly from the <code>et-book/</code> directory alongside the HTML &mdash;
                 no Google Fonts, no CDN, no third-party requests.
                 <label class="sidenote-number"></label>
-                <label for="privacy-fonts" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="privacy-fonts" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="privacy-fonts" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         This is partly a privacy choice. Loading fonts from Google means Google gets a ping
                         every time someone visits your site.
@@ -91,9 +91,9 @@
                 the text is a warm dark brown (<code>#443b36</code>),
                 and links get a nice red accent (<code>#dc5945</code>) on hover.
                 <label class="sidenote-number"></label>
-                <label for="color-palette" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="color-palette" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="color-palette" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         I spent an unreasonable amount of time choosing these three colors.
                         Then I found
@@ -112,9 +112,9 @@
                 Instead of footnotes that force you to scroll down and lose your place,
                 sidenotes sit right there in the margin, next to the text they annotate.
                 <label class="sidenote-number"></label>
-                <label for="sidenote-meta" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="sidenote-meta" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="sidenote-meta" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         Yes, I am using a sidenote to explain sidenotes.
                         How delightfully meta of me. 🪞
@@ -133,9 +133,9 @@
                 Here's what the markup looks like:
             </p>
             <blockquote>
-                <code>&lt;label class="sidenote-number"&gt;&lt;/label&gt;</code></br>
-                <code>&lt;label for="unique-id" class="margin-toggle"&gt;⊕&lt;/label&gt;</code></br>
-                <code>&lt;input type="checkbox" id="unique-id" class="margin-toggle"&gt;</code></br>
+                <code>&lt;label class="sidenote-number"&gt;&lt;/label&gt;</code><br>
+                <code>&lt;label for="unique-id" class="margin-toggle"&gt;⊕&lt;/label&gt;</code><br>
+                <code>&lt;input type="checkbox" id="unique-id" class="margin-toggle"&gt;</code><br>
                 <code>&lt;span class="marginnote sidenote"&gt;Your note here&lt;/span&gt;</code>
             </blockquote>
             <p>
@@ -144,9 +144,9 @@
                 gracefully degrades on ancient browsers,
                 and doesn't need a build step to work.
                 <label class="sidenote-number"></label>
-                <label for="no-js-pride" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="no-js-pride" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="no-js-pride" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         There is exactly zero JavaScript on this entire website.
                         Not even analytics. I don't track you. You're welcome. 🫡
@@ -167,9 +167,9 @@
             <p>
                 But here's the embarrassing part.
                 <label class="sidenote-number"></label>
-                <label for="banner-hack" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="banner-hack" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="banner-hack" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         If you're a frontend developer reading this,
                         I apologize in advance. I know this is cursed.
@@ -206,9 +206,9 @@
                 <a href="https://github.com/features/actions" target="_blank" rel="noopener noreferrer">GitHub Actions</a>
                 workflow kicks in.
                 <label class="sidenote-number"></label>
-                <label for="cicd-trigger" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="cicd-trigger" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="cicd-trigger" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         The workflow only triggers on changes to <code>src/</code> or <code>.github/workflows/</code>.
                         So I can mess around with documentation, tools, or configuration
@@ -229,9 +229,9 @@
             <p>
                 But here's the part that really sparks joy.
                 <label class="sidenote-number"></label>
-                <label for="branch-deploy" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="branch-deploy" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="branch-deploy" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         This is essentially a poor man's
                         <a href="https://vercel.com/docs/deployments/preview-deployments" target="_blank" rel="noopener noreferrer">Vercel preview deployments</a>,
@@ -249,9 +249,9 @@
                 In fact, if you're reading this on a subdomain right now,
                 that's exactly what happened.
                 <label class="sidenote-number"></label>
-                <label for="inception" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="inception" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="inception" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         This post was originally deployed to a feature branch subdomain
                         before being merged to main.
@@ -273,9 +273,9 @@
                 <a href="https://git-lfs.github.com/" target="_blank" rel="noopener noreferrer">Git LFS</a>
                 (Large File Storage).
                 <label class="sidenote-number"></label>
-                <label for="lfs-how" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="lfs-how" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="lfs-how" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         Git LFS replaces large files with tiny pointer files in the repo,
                         while storing the actual content on a remote server.
@@ -290,9 +290,9 @@
                 while each post gets its own directory matching its filename:
                 <code>src/media/20260301-how-this-website-is-built/</code>.
                 <label class="sidenote-number"></label>
-                <label for="media-org" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="media-org" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="media-org" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         The <code>00-common</code> prefix ensures shared assets sort first.
                         The date prefix on everything else keeps things chronologically sorted.
@@ -308,9 +308,9 @@
                 Tucked away in the <code>tools/</code> directory there's a tiny Python script
                 that generates the <code>sitemap.txt</code> file.
                 <label class="sidenote-number"></label>
-                <label for="sitemap-tool" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="sitemap-tool" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="sitemap-tool" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         A sitemap tells search engines what pages exist on your site.
                         The <code>.txt</code> format is the simplest kind &mdash;
@@ -340,9 +340,9 @@
                 There's a <code>CLAUDE.md</code> at the root with the overall developer guide,
                 and a <code>.claude/</code> directory with context files and step-by-step skills.
                 <label class="sidenote-number"></label>
-                <label for="claude-scaffold" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="claude-scaffold" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="claude-scaffold" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         Think of it like onboarding documentation, except the new hire
                         is a large language model that reads really fast
@@ -362,9 +362,9 @@
                 what to name the file, what template to start from, where to put the media,
                 how to update the homepage, and how to regenerate the sitemap.
                 <label class="sidenote-number"></label>
-                <label for="ai-wrote-this" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="ai-wrote-this" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="ai-wrote-this" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         Full disclosure: this very post was written with the help of
                         an AI that was using those exact skill files.
@@ -391,9 +391,9 @@
             <p>
                 But for this little corner of the internet, I like the directness.
                 <label class="sidenote-number"></label>
-                <label for="view-source" class="margin-toggle">⊕</label>
+                <label id="margin-toggle-button" for="view-source" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="view-source" class="margin-toggle">
-                <span class="marginnote sidenote">
+                <span class="sidenote marginnote">
                     <em>
                         Try it: right-click, "View Page Source".
                         What you see is what I wrote.

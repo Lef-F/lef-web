@@ -52,16 +52,10 @@ def crawl_site(path: str, map: list = []) -> list:
 
 website_paths = crawl_site(src_path)
 
-if args.domain[-1] == "/":
-    domain = args.domain
-else:
-    domain = args.domain + "/"
+domain = args.domain.rstrip("/")
 
 website_paths = [
-    path.replace(
-        src_path,
-        domain,
-    )
+    domain + path.replace(src_path, "").replace(os.sep, "/")
     for path in website_paths
 ]
 

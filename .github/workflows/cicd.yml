@@ -45,14 +45,14 @@ jobs:
         run: |
           aws s3api delete-public-access-block \
             --bucket ${{ steps.bucket.outputs.NAME }}
-          aws s3 website s3://${{ steps.bucket.outputs.NAME }}/ \
-            --index-document index.html \
-            --error-document 404.html
           sed "s/www.example.com/${{ steps.bucket.outputs.NAME }}/g" \
             ${{ github.workspace }}/.github/workflows/policy.json > /tmp/policy.json
           aws s3api put-bucket-policy \
             --bucket ${{ steps.bucket.outputs.NAME }} \
             --policy file:///tmp/policy.json
+          aws s3 website s3://${{ steps.bucket.outputs.NAME }}/ \
+            --index-document index.html \
+            --error-document 404.html
 
       - name: Sync src/ to S3
         run: |
