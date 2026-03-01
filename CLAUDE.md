@@ -23,9 +23,9 @@ npm run start       # Local server at http://127.0.0.1:8080
 npm run cssmin      # Minify tufte.css → tufte.min.css (MUST run after CSS changes)
 ```
 
-Sitemap generation (requires poetry env in `tools/`):
+Sitemap generation (requires uv in `tools/`):
 ```shell
-cd tools && poetry run python src/sitemap_generator.py https://lef.fyi ../src --except "et-book"
+cd tools && uv run python src/sitemap_generator.py https://lef.fyi ../src --except "et-book"
 ```
 
 ## Conventions

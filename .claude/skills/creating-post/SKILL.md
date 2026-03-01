@@ -30,7 +30,7 @@ When creating a new page or blog post for lef.fyi.
    - Add a link to the new post in the appropriate section
 
 5. **Update sitemap**
-   - Run: `cd tools && poetry run python src/sitemap_generator.py https://lef.fyi ../src --except "et-book"`
+   - Run: `cd tools && uv run python src/sitemap_generator.py https://lef.fyi ../src --except "et-book"`
    - Or manually add the URL to `src/sitemap.txt`
 
 6. **Preview locally**
