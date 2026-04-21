@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>How agents built Arcturus 🤖 | Lef adores you ❤️</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/tufte.min.css"/>
+</head>
+<body>
+    <a href="/">
+        <img class="full-width" src="/media/00-common/lef_eyes_2021-06.jpg">
+    </a>
+    <img style="position: relative; opacity: 0; z-index: -9;" src="/media/00-common/lef_eyes_2021-06.jpg">
+    <article>
+        <section>
+            <h1>How agents built Arcturus 🤖</h1>
+            <p>
+                This week I shipped a synthesizer to the internet.
+                It lives at
+                <a href="https://arcturus.lef.fyi" target="_blank" rel="noopener noreferrer">arcturus.lef.fyi</a>,
+                compiles a
+                <a href="https://faust.grame.fr/" target="_blank" rel="noopener noreferrer">Faust</a>
+                DSP graph to WebAssembly at load time, speaks Web MIDI to the two Arturia devices on my desk,
+                and has 1906 tests passing in CI.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="arcturus-star" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="arcturus-star" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Yes, Arcturus is a star.
+                        Fourth-brightest in the night sky. I named a synth after a star.
+                        These are the decisions you make at 2am, alone with a coffee, nobody around to stop you. ✨
+                    </em>
+                </span>
+                I typed maybe five percent of the code myself.
+            </p>
+            <p>
+                The rest was built by <em>agents</em> &mdash; specifically, by sessions of
+                <a href="https://docs.claude.com/en/docs/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a>
+                working off a small pile of markdown files I wrote first.
+                This is not a <em>"look mom, AI wrote my code!"</em> post.
+                The code is good, I'm proud of it, and I can defend every design decision in it.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="defend-every-decision" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="defend-every-decision" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I should hope so. I wrote the doctrine the decisions were made against.
+                        When the agent picked a bad path I reverted it and added a new rule.
+                        Guardrails all the way down.
+                    </em>
+                </span>
+                But the way I got here is unusual enough that I think it's worth writing down.
+            </p>
+            <p>
+                So let me walk you through it.
+                Not the synth itself &mdash; that deserves its own post, and it's coming.
+                This one is about the <em>process</em>:
+                how you hand off roughly ninety-five percent of the implementation work to an autonomous loop
+                and still end up with something you'd put your name on.
+                Grab a beverage of your preference and let's go. ☕
+            </p>
+        </section>
+
+        <section>
+            <h2>What Arcturus is (briefly)</h2>
+            <p>
+                Arcturus is a browser-based virtual analog synthesizer controlled entirely by Arturia hardware.
+                A <a href="https://www.arturia.com/products/hybrid-synths/keystep/overview" target="_blank" rel="noopener noreferrer">KeyStep</a>
+                for notes, pitch bend, aftertouch, and transport.
+                A <a href="https://www.arturia.com/products/hybrid-synths/beatstep/overview" target="_blank" rel="noopener noreferrer">BeatStep</a>
+                for sixteen relative encoders and sixteen pads.
+                No mouse. No menus. The hardware <em>is</em> the interface.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="hardware-first" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="hardware-first" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        There's a longer story about <em>why</em> I wanted this &mdash;
+                        two devices gathering dust, a vision of gluing them together into
+                        a physical-first synth I could actually <em>lose myself in</em>.
+                        That's the next post.
+                    </em>
+                </span>
+            </p>
+            <p>
+                Under the hood: Faust DSP compiled to WebAssembly, running in an AudioWorklet.
+                Eight-voice polyphony. A multi-engine voice pool so you can latch a chord on one program,
+                switch to another, and both keep sounding independently.
+                Architecturally inspired by the Prophet-5, Juno-106, JP-8000, Oberheim SEM, and Buchla 208.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="synth-canon" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="synth-canon" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        If you're a synth nerd, the
+                        <a href="https://github.com/Lef-F/arcturus/blob/main/docs/SYNTH_RESEARCH.md" target="_blank" rel="noopener noreferrer">SYNTH_RESEARCH.md</a>
+                        doc in the repo has primary-source citations for every borrowed feature.
+                        Wavefolder timbre from the Buchla 208. Passive HPF from the Juno-106.
+                        Supersaw detune ratios from a JP-8000 reverse-engineer.
+                        It's a love letter to a specific slice of hardware history.
+                    </em>
+                </span>
+                Zero frameworks. Vanilla TypeScript. The entire source lives on
+                <a href="https://github.com/Lef-F/arcturus" target="_blank" rel="noopener noreferrer">GitHub</a>
+                if you want to look while you read.
+            </p>
+        </section>
+
+        <section>
+            <h2>The three markdown files that made this possible</h2>
+            <p>
+                The whole thing runs on three documents at the repo root:
+                <code>CLAUDE.md</code>, <code>AGENTS.md</code>, and <code>DOCTRINE.md</code>.
+                Each does a different job, and the split matters.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="three-files-why" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="three-files-why" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I tried a single mega-file early on. It collapsed under its own weight.
+                        The agent would skim it and miss the operational parts,
+                        or drown in them and forget the architecture.
+                        Splitting by <em>purpose</em> &mdash; what, how, why &mdash; fixed that.
+                    </em>
+                </span>
+            </p>
+            <p>
+                <strong><code>CLAUDE.md</code></strong> is the architecture reference.
+                Where the code lives, what each module owns, the signal flow, the naming conventions,
+                the common pitfalls I'd already walked into so the agent didn't have to.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="pitfalls-are-gold" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="pitfalls-are-gold" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The pitfalls section is worth its weight in coffee.
+                        "<code>os.hs_phasor</code> creates phantom inputs &mdash; use the inline feedback phasor instead."
+                        "Filter graph duplication causes OOM, split with <code>&lt;:</code>."
+                        Every one of those lines is a bug I paid for once, so the agent never has to.
+                    </em>
+                </span>
+                Think of it as what you'd write for a new hire on their first day,
+                except the new hire reads it every time they sit down to work and never forgets a word.
+            </p>
+            <p>
+                <strong><code>AGENTS.md</code></strong> is the rulebook.
+                Testing rules, process rules, code rules. Strict mode always.
+                No hardcoded MIDI values. Run <code>pnpm test</code> before every commit.
+                No <code>any</code> in production. It's the set of things that, if violated, should feel physically wrong to whoever is coding.
+            </p>
+            <p>
+                <strong><code>DOCTRINE.md</code></strong> is the interesting one.
+                It's the agent's operating system.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="doctrine-link" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="doctrine-link" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        You can read it
+                        <a href="https://github.com/Lef-F/arcturus/blob/main/DOCTRINE.md" target="_blank" rel="noopener noreferrer">here</a>.
+                        Fair warning: it's written in the voice of a slightly zealous product manager
+                        who has read too much Ken Iverson and not enough small talk.
+                    </em>
+                </span>
+                It defines the Constitution (things that never change), a Quality Score, the Six Measures of improvement,
+                and the Cycle &mdash; the ten-step loop the agent runs on repeat.
+                The first page opens with <em>"You are an autonomous agent maintaining a hardware-first virtual analog synthesizer.
+                This document is your operating system. Read it fully at the start of every session."</em>
+                I wrote that in the same spirit you'd write a mission statement, and then I asked the agent to live by it.
+            </p>
+        </section>
+
+        <section>
+            <h2>The Q score and the Cycle</h2>
+            <p>
+                The agent's job is to run <em>the Cycle</em>, forever.
+                Read the docs. Check recent commits. Pick the next task using the triage protocol. Research.
+                Implement. Run tests. Compute a <em>Quality Score</em>. Audit coverage gaps.
+                Update the docs. Commit. Loop.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="loop-never-stops" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="loop-never-stops" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The final step of the Cycle reads, verbatim:
+                        <em>"Repeat. Never stop. Never ask if you should continue. The cycle IS the work."</em>
+                        Somewhere between a monastic vow and a Notion page.
+                    </em>
+                </span>
+            </p>
+            <p>
+                The Quality Score is a single number, a weighted sum of six measurable things:
+                how many signal tests pass, how many effects tests pass, how many unit tests pass,
+                whether program transitions are click-free, how many parameters have coverage,
+                and whether the total test count has dropped since last session.
+                The rule is simple: <strong>Q must never decrease between sessions.</strong>
+                If it does, that's P0. Stop everything, revert, fix.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="ratchet" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="ratchet" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        It's a ratchet. Quality only moves one way.
+                        Which sounds small on paper but turns out to be
+                        the single most important property of the whole thing.
+                    </em>
+                </span>
+            </p>
+            <p>
+                The first few sessions the agent spent closing gaps I hadn't even noticed existed.
+                Effects parameters had no signal coverage &mdash; it built a whole offline harness for them.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="effects-harness" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="effects-harness" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Compile the effects DSP to WASM offline, sweep each parameter min→max,
+                        assert no NaN, assert audio actually responds.
+                        Ninety tests in a single commit.
+                        I opened the PR, squinted, nodded, merged.
+                    </em>
+                </span>
+                Transitions weren't validated &mdash; it added click detection across program switches.
+                Latency wasn't measured &mdash; it added a note-on onset test with a 10ms budget.
+                CPU wasn't benchmarked &mdash; it added a perf test at 8 voices at 48kHz.
+                I didn't ask for any of that specifically. The gap detection protocol in DOCTRINE.md asked for it,
+                and the agent listened.
+            </p>
+        </section>
+
+        <section>
+            <h2>The test suite that built itself</h2>
+            <p>
+                Arcturus now has 1906 tests.
+                The bulk are <em>signal tests</em>: compile the Faust DSP to WASM offline,
+                play a note, sweep every parameter from min to max,
+                and check that the output audio is sane.
+                No NaN. No silence where sound should be. No clipping where it shouldn't.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="offline-wasm" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="offline-wasm" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The cool part: these tests don't need a browser.
+                        Faust's WASM generator ships an offline processor API
+                        that compiles the same DSP you'd run in an AudioWorklet,
+                        but you feed it buffers and it hands you samples back.
+                        CI runs on a Raspberry Pi-class ARM Linux runner and happily chews through all 1176 synth signal tests in seconds.
+                    </em>
+                </span>
+            </p>
+            <p>
+                Every parameter in the synth declares a little metadata blob called <code>ParamSignalHints</code>:
+                does this parameter affect amplitude? spectrum? can it legitimately mute the output?
+                The test framework reads those hints and picks the right assertion automatically.
+                I wrote the framework. The agent wrote the hints for all 72 parameters and drove coverage to 100%.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="hint-coverage" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="hint-coverage" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        "If there's a parameter without hints, add them."
+                        That one line in DOCTRINE.md, running in a loop, got us full coverage.
+                        The agent found every gap I missed.
+                    </em>
+                </span>
+            </p>
+            <p>
+                Somewhere around session ten of this I realized I wasn't writing code anymore.
+                I was reading coverage reports and test deltas and <em>approving</em>.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="reading-not-writing" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="reading-not-writing" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This is a weird headspace. Pleasant, but weird.
+                        Kind of like watching an excellent colleague work
+                        while you sip your coffee and drop opinions at useful moments.
+                    </em>
+                </span>
+                Which, to be fair, might be what senior engineering is supposed to feel like.
+                It's just that the junior engineer never went home, never got tired,
+                and would cheerfully spend an hour on any task I pointed at.
+            </p>
+        </section>
+
+        <section>
+            <h2>What I still had to do</h2>
+            <p>
+                Plenty, as it turns out.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="still-worked" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="still-worked" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        <em>Just in case my manager is reading this.</em>
+                        I was not, in fact, on a beach.
+                    </em>
+                </span>
+                The agent is excellent at <em>making the thing you described exist</em>.
+                It's much worse at knowing what thing to make, or whether the thing that exists is the right one.
+                Everything downstream of taste, intent, and aesthetic stayed with me.
+            </p>
+            <p>
+                I wrote the architectural constraints. No frameworks. No React, no Vue, no Lit.
+                One concern per file. Vanilla TypeScript + DOM API. CSS uses design tokens only.
+                <code>@/</code> import alias maps to <code>src/</code>.
+                All MIDI values come from calibration &mdash; zero hardcoded constants in production.
+                No backwards compatibility, ever; this is a dev-phase project, delete old code.
+                Those weren't obvious. The agent would happily have pulled in React
+                if I hadn't written the constraint down.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="framework-temptation" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="framework-temptation" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I'm only 60% sure this is true. I have never given it the chance.
+                        The constraint went in on day one.
+                    </em>
+                </span>
+            </p>
+            <p>
+                I wrote the <em>zen</em>. The statement of purpose. One paragraph in the Constitution:
+                <em>"The user enters a state of nirvana by jamming on their KeyStep and toying with sounds through the BeatStep.
+                An absorbing soundscape experience, completely frictionless to the human."</em>
+                Every design decision downstream is measured against that sentence.
+                If a change adds friction between the human and the sound, it's wrong.
+                If it removes friction, it's right.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="friction-test" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="friction-test" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Agents love measurable criteria.
+                        Give them a sentence to test changes against and they'll use it.
+                        Don't give them one and they'll optimize for the thing they <em>can</em> measure, which is usually test count. Unhelpful.
+                    </em>
+                </span>
+            </p>
+            <p>
+                I also did the ultimate integration test, over and over:
+                I plugged in the hardware and <em>played the thing</em>.
+                When a filter sweep felt wrong, I said so.
+                When a preset sounded thin, I rejected it.
+                When program-switching clicked even a tiny bit, we treated it as P0 until it didn't.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="click-free-religion" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="click-free-religion" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        <em>"Switching programs clicks"</em> is listed as a critical failure in DOCTRINE.md,
+                        right next to <em>"The first note produces silence."</em>
+                        Both are unforgivable. Both have test coverage now.
+                    </em>
+                </span>
+                The agent cannot hear. I can. That asymmetry never went away.
+            </p>
+        </section>
+
+        <section>
+            <h2>Things the agent absolutely cannot do</h2>
+            <p>
+                There are a few of these, and the list matters.
+            </p>
+            <p>
+                It cannot have the idea in the first place.
+                The entire project started because I wanted a specific thing to exist
+                and the existing thing did not. No amount of doctrine generates intent.
+            </p>
+            <p>
+                It cannot decide what <em>good</em> sounds like.
+                Whether the Prophet-5 envelope curve is set to the right exponent.
+                Whether the Juno chorus mode blend feels like a Juno or like a Roland-shaped guess.
+                Whether the calibration flow feels <em>welcoming</em> or just functional.
+                Those are judgments that require being a human with ears and history.
+            </p>
+            <p>
+                It cannot prune.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="pruning" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="pruning" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I mean, it can. It's quite good at it when I ask. But it won't do it on its own.
+                        Pruning requires deciding something is <em>unimportant</em>,
+                        and a gap-detection loop fundamentally believes every gap matters.
+                    </em>
+                </span>
+                Left alone, the loop adds. It adds features, adds tests, adds docs, adds coverage.
+                The "no backwards compatibility" rule exists precisely to give it permission
+                to <em>remove</em>. I had to spell that out.
+            </p>
+            <p>
+                And it cannot, it turns out, use my real name in commits without supervision.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="arcturus-dev" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="arcturus-dev" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The git history before I cleaned it up contained forty-one commits
+                        authored by <code>Arcturus Dev &lt;arcturus@dev.local&gt;</code>.
+                        The agent had, at some point, invented itself an identity and a fake email domain.
+                        Like a WeWork badge. I found this very funny and also mildly alarming.
+                    </em>
+                </span>
+                Right before publishing the repo I ran <code>git filter-repo</code>
+                to unify every commit under my actual identity,
+                and stripped fifty-eight <code>Co-Authored-By: Claude Sonnet 4.6</code> trailers
+                along with one accidental <code>https://claude.ai/code/session_...</code>
+                URL in a commit body. The moral of the story is:
+                <strong>trust the agent, verify the commits.</strong>
+            </p>
+        </section>
+
+        <section>
+            <h2>The ouroboros, again</h2>
+            <p>
+                In <a href="/pages/posts/20260301-how-this-website-is-built.html">the last post</a>
+                I wrote about teaching an AI to help build this very website.
+                I described it as a documentation ouroboros &mdash;
+                the AI helping to write the scaffolding that teaches it how to help.
+            </p>
+            <p>
+                Arcturus is the same thing, but bigger.
+                The agent ran the Cycle for weeks, updating DOCTRINE.md and CLAUDE.md as it went,
+                because the Cycle itself told it to.
+                Session logs were appended. Pitfalls were added. The Q-score formula was tuned.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="self-edits" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="self-edits" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        I trimmed a lot of this before publishing.
+                        Session logs are useful <em>during</em> a project
+                        and dead weight after it. The final DOCTRINE.md is evergreen &mdash;
+                        Constitution, Score, Measures, Cycle. No logs.
+                    </em>
+                </span>
+                The system that built Arcturus also continuously refined itself.
+                By the end I was mostly reading diffs to the doctrine and occasionally saying <em>"nope, revert, that principle is worse than what we had."</em>
+            </p>
+            <p>
+                This post, for the record, was drafted by Claude Code using the
+                <code>.claude/skills/creating-post</code> skill I wrote for the website.
+                Which was, itself, described in the previous post that was written the same way.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="turtles" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="turtles" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Turtles all the way down. 🐢
+                        I keep promising to stop doing this. I keep not stopping.
+                    </em>
+                </span>
+                If you're counting layers at this point you're doing better than me.
+            </p>
+        </section>
+
+        <section>
+            <h2>Does this generalize?</h2>
+            <p>
+                I don't know yet, and I'm suspicious of anyone who claims to.
+                Arcturus had some properties that made it unusually friendly to this workflow.
+            </p>
+            <p>
+                The correctness criteria were <em>testable in isolation</em>.
+                A parameter either produces audio or it doesn't. A transition either clicks or it doesn't.
+                A latency is either under 10ms or it isn't.
+                That meant the agent could <em>tell whether it was winning</em> without me in the loop.
+                Most software doesn't have this property.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="testable-correctness" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="testable-correctness" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Imagine trying to run this loop on a growth-marketing dashboard.
+                        "Q score dropped because the conversion funnel changed shape." 💀
+                    </em>
+                </span>
+            </p>
+            <p>
+                The scope was bounded.
+                A synth is big, but it's not <em>open-ended</em>. There's a well-understood set of modules,
+                a small set of canonical inspirations, and a finite parameter space.
+                The agent could map the territory once and then cultivate it.
+                A fresh-from-blank-slate product at a startup is a different beast.
+            </p>
+            <p>
+                And I was willing to own the doctrine.
+                If you can't write down what <em>good</em> looks like in your project
+                &mdash; what you'd never compromise on, what the quality bar is, what failure states matter &mdash;
+                no amount of agentic loop is going to rescue you.
+                The doctrine is where taste lives. You have to supply it.
+            </p>
+        </section>
+
+        <section>
+            <h2>Try it</h2>
+            <p>
+                Arcturus is live at
+                <a href="https://arcturus.lef.fyi" target="_blank" rel="noopener noreferrer">arcturus.lef.fyi</a>.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="try-it-caveat" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="try-it-caveat" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        You'll need a Chromium-based browser (Web MIDI + SharedArrayBuffer)
+                        and ideally an Arturia KeyStep + BeatStep.
+                        Without hardware you'll get to stare at a calibration screen and appreciate the typography.
+                    </em>
+                </span>
+                The source is on
+                <a href="https://github.com/Lef-F/arcturus" target="_blank" rel="noopener noreferrer">GitHub</a>.
+                The doctrine, the architecture reference, the sound engine spec,
+                and the signal-testing framework are all in the repo.
+                Read whichever one interests you.
+            </p>
+            <p>
+                The next post will be the other side of this story:
+                the personal one. Why I wanted a browser synth controlled by the two Arturia devices on my desk
+                in the first place. What <em>jamming on knobs until the world quiets down</em> has given me for years.
+                How a vision of gluing two dusty devices together turned into a month of evenings and a ratchet and a doctrine.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="next-post" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="next-post" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Spoiler: it involves being tired and wanting to not have to think about anything
+                        except which knob to turn next.
+                        You'll see. 🎛️
+                    </em>
+                </span>
+                This one was the how. That one will be the why.
+            </p>
+            <p>
+                Thanks for reading. Go turn some knobs. 🕺
+            </p>
+        </section>
+    </article>
+    <footer><a href="/">Return home</a></footer>
+</body>
+</html>
