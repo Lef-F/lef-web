@@ -173,7 +173,7 @@
         </section>
 
         <section>
-            <h2>The Q score and the Cycle</h2>
+            <h2>The Cycle</h2>
             <p>
                 The agent's job is to run <em>the Cycle</em>, forever.
                 Read the docs. Check recent commits. Pick the next task using the triage protocol. Research.
@@ -191,98 +191,24 @@
                 </span>
             </p>
             <p>
-                The Quality Score is a single number, a weighted sum of six measurable things:
-                how many signal tests pass, how many effects tests pass, how many unit tests pass,
-                whether program transitions are click-free, how many parameters have coverage,
-                and whether the total test count has dropped since last session.
-                The rule is simple: <strong>Q must never decrease between sessions.</strong>
-                If it does, that's P0. Stop everything, revert, fix.
+                Two of those steps are load-bearing in a way I didn't expect when I wrote them:
+                the Quality Score, and the rule that it cannot decrease between sessions.
                 <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="ratchet" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="ratchet" class="margin-toggle">
+                <label id="margin-toggle-button" for="q-teaser" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="q-teaser" class="margin-toggle">
                 <span class="sidenote marginnote">
                     <em>
-                        It's a ratchet. Quality only moves one way.
-                        Which sounds small on paper but turns out to be
-                        the single most important property of the whole thing.
+                        Short version: Q is a weighted sum of how many tests pass, how many parameters
+                        have signal coverage, and a couple of other measurable things.
+                        The rule is a ratchet. Quality only moves one way.
                     </em>
                 </span>
-            </p>
-            <p>
-                The first few sessions the agent spent closing gaps I hadn't even noticed existed.
-                Effects parameters had no signal coverage, so it built a whole offline harness for them.
-                <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="effects-harness" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="effects-harness" class="margin-toggle">
-                <span class="sidenote marginnote">
-                    <em>
-                        Compile the effects DSP to WASM offline, sweep each parameter min→max,
-                        assert no NaN, assert audio actually responds.
-                        Ninety tests in a single commit.
-                        I opened the PR, squinted, nodded, merged.
-                    </em>
-                </span>
-                Transitions weren't validated, so it added click detection across program switches.
-                Latency wasn't measured, so it added a note-on onset test with a 10ms budget.
-                CPU wasn't benchmarked, so it added a perf test at 8 voices at 48kHz.
-                I didn't ask for any of that specifically. The gap detection protocol in DOCTRINE.md asked for it,
-                and the agent listened.
-            </p>
-        </section>
-
-        <section>
-            <h2>The test suite that built itself</h2>
-            <p>
-                Arcturus now has 1906 tests.
-                The bulk are <em>signal tests</em>: compile the Faust DSP to WASM offline,
-                play a note, sweep every parameter from min to max,
-                and check that the output audio is sane.
-                No NaN. No silence where sound should be. No clipping where it shouldn't.
-                <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="offline-wasm" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="offline-wasm" class="margin-toggle">
-                <span class="sidenote marginnote">
-                    <em>
-                        The cool part: these tests don't need a browser.
-                        Faust's WASM generator ships an offline processor API
-                        that compiles the same DSP you'd run in an AudioWorklet,
-                        but you feed it buffers and it hands you samples back.
-                        CI runs on a Raspberry Pi-class ARM Linux runner and happily chews through all 1176 synth signal tests in seconds.
-                    </em>
-                </span>
-            </p>
-            <p>
-                Every parameter in the synth declares a little metadata blob called <code>ParamSignalHints</code>:
-                does this parameter affect amplitude? spectrum? can it legitimately mute the output?
-                The test framework reads those hints and picks the right assertion automatically.
-                I wrote the framework. The agent wrote the hints for all 72 parameters and drove coverage to 100%.
-                <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="hint-coverage" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="hint-coverage" class="margin-toggle">
-                <span class="sidenote marginnote">
-                    <em>
-                        "If there's a parameter without hints, add them."
-                        That one line in DOCTRINE.md, running in a loop, got us full coverage.
-                        The agent found every gap I missed.
-                    </em>
-                </span>
-            </p>
-            <p>
-                Somewhere around session ten of this I realized I wasn't writing code anymore.
-                I was reading coverage reports and test deltas and <em>approving</em>.
-                <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="reading-not-writing" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="reading-not-writing" class="margin-toggle">
-                <span class="sidenote marginnote">
-                    <em>
-                        This is a weird headspace. Pleasant, but weird.
-                        Kind of like watching an excellent colleague work
-                        while you sip your coffee and drop opinions at useful moments.
-                    </em>
-                </span>
-                Which, to be fair, might be what senior engineering is supposed to feel like.
-                It's just that the junior engineer never went home, never got tired,
-                and would cheerfully spend an hour on any task I pointed at.
+                That ratchet is the reason I could leave the loop running for hours and trust what I came back to.
+                It also reshaped what "the test suite" meant on this project, in ways that deserve their own post.
+                I wrote that one too:
+                <a href="/pages/posts/20260421-the-trust-harness.html">The trust harness</a>,
+                companion to this one, goes deep on the score, the offline signal-test framework, and the feedback
+                loop between the two. Come back when you're done with this, or read them in either order.
             </p>
         </section>
 
@@ -338,31 +264,6 @@
                         Don't give them one and they'll optimize for the thing they <em>can</em> measure, which is usually test count. Unhelpful.
                     </em>
                 </span>
-            </p>
-            <p>
-                I also caught the bugs the test suite couldn't see.
-                There's a whole class of DSP failure that only shows up
-                when real audio-rate modulation drives a parameter outside the range
-                static sweep tests explore.
-                <label class="sidenote-number"></label>
-                <label id="margin-toggle-button" for="dsp-nan-bugs" class="margin-toggle">⊕</label>
-                <input type="checkbox" id="dsp-nan-bugs" class="margin-toggle">
-                <span class="sidenote marginnote">
-                    <em>
-                        A flavour of these: a Moog ladder emitting NaN because a cutoff value
-                        hadn't been normalised to <code>[0,1]</code> before entering the core,
-                        silencing the entire graph.
-                        An SVF filter destabilising under audio-rate poly-mod FM.
-                        An aftertouch curve set to <code>x²</code> that felt
-                        too aggressive in the hand and needed to be <code>x^1.5</code> by ear.
-                        None of these showed up in 1176 static parameter sweeps.
-                        All of them showed up within thirty seconds of playing the hardware.
-                    </em>
-                </span>
-                The agent shipped features that passed every test,
-                and then I'd plug the KeyStep in and the filter would blow up into NaN
-                on the second note. A solid chunk of those final-month <code>fix:</code> commits
-                are me tracking those down and writing the pairwise test that <em>would</em> have caught them.
             </p>
             <p>
                 I also did the ultimate integration test, over and over:
@@ -550,9 +451,16 @@
                 Read whichever one interests you.
             </p>
             <p>
-                The next post will be the other side of this story:
-                the personal one. Why I wanted a browser synth controlled by the two Arturia devices on my desk
-                in the first place. What <em>jamming on knobs until the world quiets down</em> has given me for years.
+                If this post was about the <em>operating system</em>,
+                <a href="/pages/posts/20260421-the-trust-harness.html">the companion post</a>
+                is about the <em>verification infrastructure</em>:
+                how the offline signal-test framework and the Q-score ratchet made the unsupervised stretches safe,
+                and what happens on the days the harness misses something and I have to go in with ears on.
+            </p>
+            <p>
+                There's a third post coming, eventually: the personal one.
+                Why I wanted a browser synth controlled by the two Arturia devices on my desk in the first place.
+                What <em>jamming on knobs until the world quiets down</em> has given me for years.
                 How a vision of gluing two dusty devices together turned into a month of evenings and a ratchet and a doctrine.
                 <label class="sidenote-number"></label>
                 <label id="margin-toggle-button" for="next-post" class="margin-toggle">⊕</label>
@@ -564,7 +472,7 @@
                         You'll see. 🎛️
                     </em>
                 </span>
-                This one was the how. That one will be the why.
+                These two posts are the <em>how</em>. That one will be the <em>why</em>.
             </p>
             <p>
                 Thanks for reading. Go turn some knobs. 🕺

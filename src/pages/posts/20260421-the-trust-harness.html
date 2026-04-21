@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>The trust harness 🧪 | Lef adores you ❤️</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/tufte.min.css"/>
+</head>
+<body>
+    <a href="/">
+        <img class="full-width" src="/media/00-common/lef_eyes_2021-06.jpg">
+    </a>
+    <img style="position: relative; opacity: 0; z-index: -9;" src="/media/00-common/lef_eyes_2021-06.jpg">
+    <article>
+        <section>
+            <h1>The trust harness 🧪</h1>
+            <p>
+                In
+                <a href="/pages/posts/20260421-how-agents-built-arcturus.html">the previous post</a>
+                I described the three markdown files that kept an agent productive over a month of building
+                <a href="https://arcturus.lef.fyi" target="_blank" rel="noopener noreferrer">Arcturus</a>.
+                That post was about the <em>operating system</em>: doctrine, cycle, how to hand off work without the loop drifting.
+                This one is about the reason I could close the laptop and go for a walk
+                (or open a different editor and mess around with a completely unrelated idea)
+                and still trust that I'd come back to something I'd want to merge.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="why-trust-matters" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="why-trust-matters" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The doctrine is what the agent does. The harness is how I know it did it right.
+                        You need both. A doctrine without a harness is a prayer;
+                        a harness without a doctrine is a gym membership you never use.
+                    </em>
+                </span>
+            </p>
+            <p>
+                It's about the <em>harness</em>: the offline signal tests, the Q-score ratchet,
+                and the feedback loop that fine-tuned my unsupervised time into something I actually trust.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="two-post-framing" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="two-post-framing" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Short version of
+                        <a href="/pages/posts/20260421-how-agents-built-arcturus.html">part one</a>:
+                        Arcturus is a browser-based virtual analog synth controlled entirely by
+                        the Arturia KeyStep and BeatStep on my desk.
+                        Faust DSP compiled to WebAssembly. Vanilla TypeScript. 1906 tests in CI.
+                        Roughly ninety-five percent of the code written by Claude Code
+                        under a fairly stern doctrine.
+                    </em>
+                </span>
+            </p>
+        </section>
+
+        <section>
+            <h2>Two modes</h2>
+            <p>
+                Building Arcturus oscillated between two very different modes of work.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="mode-rhythm" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="mode-rhythm" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Mostly an 80/20 split across a typical week.
+                        The longer the unsupervised stretches could safely run,
+                        the more project-weeks fit in a calendar-week.
+                    </em>
+                </span>
+                Most of the time I was in <em>unsupervised mode</em>: I'd pick a goal, frame it for the agent,
+                and walk away. Sometimes to work on something completely different.
+                Sometimes to play with an idea in a scratch repo.
+                Sometimes, honestly, to go make coffee and come back an hour later.
+                The agent would run the cycle, push commits, run the test suite, and push more.
+                I'd return to a diff, skim it, approve, and queue the next goal.
+            </p>
+            <p>
+                Every so often the loop would trip an alarm <em>or</em> I'd plug in the KeyStep
+                and hear something wrong, and the whole project would snap into <em>intense human-in-the-loop mode</em>:
+                I'd pair with a session at keyboard intensity, investigate a DSP bug with actual ears,
+                rewrite a protocol, rephrase a doctrine principle, widen a test.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="intensity-switch" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="intensity-switch" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        These were exhausting and also the best part.
+                        The investigation work was the work I'd have been doing anyway if I'd built the thing myself;
+                        the difference was that everything <em>around</em> it had already been taken care of.
+                    </em>
+                </span>
+                Then back to unsupervised.
+            </p>
+            <p>
+                The question that ran the whole project was: <em>how long can the unsupervised stretches safely get?</em>
+                An hour? Three hours? A workday? The answer scales directly with how much you've invested
+                in the harness. This post is mostly about that investment.
+            </p>
+        </section>
+
+        <section>
+            <h2>The Q-score ratchet</h2>
+            <p>
+                The rule is simple: <strong>Q must never decrease between sessions.</strong>
+                If it does, that's P0. Stop everything, revert, fix.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="ratchet" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="ratchet" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        It's a ratchet. Quality only moves one way.
+                        Which sounds small on paper but turns out to be
+                        the single most important property of the whole thing.
+                    </em>
+                </span>
+            </p>
+            <p>
+                Q is a single number, a weighted sum of six measurable things:
+                how many signal tests pass, how many effects tests pass, how many unit tests pass,
+                whether program transitions are click-free, how many parameters have signal coverage,
+                and whether the total test count has dropped since last session.
+                The agent computes it after every test run and logs it in the commit description.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="q-weights" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="q-weights" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Weights in the formula: signal 0.30, unit 0.20, effects 0.15, transitions 0.15,
+                        parameter coverage 0.10, zero-regressions 0.10. I tuned them by hand
+                        to reflect where I cared most about regressions catching us.
+                        Yours would look different.
+                    </em>
+                </span>
+            </p>
+            <p>
+                The ratchet is the trust contract. It's the reason I can leave the loop running.
+                It guarantees, mechanically, that whatever state I come back to is at least as good as the state I left.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="mechanical-trust" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="mechanical-trust" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        "At least as good" by <em>my</em> definition of good, baked into Q.
+                        Garbage weights in, garbage ratchet out.
+                        You have to actually pick measurements that matter for <em>your</em> project.
+                    </em>
+                </span>
+                If the agent's next commit would lower Q, the agent itself is supposed to catch that,
+                revert, and try a different approach. In practice the ratchet fired maybe a dozen times
+                across the project; each time I came back to a clean working tree, a failed-and-reverted attempt
+                in the log, and a note in the commit description describing what the agent tried and why it rolled back.
+            </p>
+            <p>
+                The first few sessions after I formalized Q, the agent spent entirely closing gaps I hadn't noticed existed.
+                Effects parameters had no signal coverage, so it built a whole offline harness for them.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="effects-harness" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="effects-harness" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Compile the effects DSP to WASM offline, sweep each parameter min→max,
+                        assert no NaN, assert audio actually responds.
+                        Ninety tests in a single commit.
+                        I opened the PR, squinted, nodded, merged.
+                    </em>
+                </span>
+                Transitions weren't validated, so it added click detection across program switches.
+                Latency wasn't measured, so it added a note-on onset test with a 10ms budget.
+                CPU wasn't benchmarked, so it added a perf test at 8 voices at 48kHz.
+                I didn't ask for any of that specifically. The gap-detection protocol in DOCTRINE.md asked for it,
+                and the agent listened.
+            </p>
+        </section>
+
+        <section>
+            <h2>The test suite that built itself</h2>
+            <p>
+                Arcturus now has 1906 tests.
+                The bulk are <em>signal tests</em>: compile the Faust DSP to WASM offline,
+                play a note, sweep every parameter from min to max,
+                and check that the output audio is sane.
+                No NaN. No silence where sound should be. No clipping where it shouldn't.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="offline-wasm" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="offline-wasm" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The cool part: these tests don't need a browser.
+                        Faust's WASM generator ships an offline processor API
+                        that compiles the same DSP you'd run in an AudioWorklet,
+                        but you feed it buffers and it hands you samples back.
+                        CI runs on a Raspberry Pi-class ARM Linux runner and happily chews through all 1176 synth signal tests in seconds.
+                    </em>
+                </span>
+                This is the single piece of infrastructure that makes long unsupervised stretches possible.
+                Without it the agent has to hand-wave about correctness; with it the agent can state, numerically,
+                whether the thing it just shipped still sounds.
+            </p>
+            <p>
+                Every parameter in the synth declares a little metadata blob called <code>ParamSignalHints</code>:
+                does this parameter affect amplitude? spectrum? can it legitimately mute the output?
+                The test framework reads those hints and picks the right assertion automatically.
+                I wrote the framework. The agent wrote the hints for all 72 parameters and drove coverage to 100%.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="hint-coverage" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="hint-coverage" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        "If there's a parameter without hints, add them."
+                        That one line in DOCTRINE.md, running in a loop, got us full coverage.
+                        The agent found every gap I missed.
+                    </em>
+                </span>
+            </p>
+            <p>
+                On top of the deterministic sweep, CI runs a nightly fuzz job:
+                ten thousand random parameter combinations per build, tolerated up to a one-percent NaN rate,
+                failing the build if it goes higher.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="nightly-fuzz" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="nightly-fuzz" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The threshold used to be zero. I relaxed it when we hit a known edge case
+                        (audio-rate poly-mod FM at maximum depth into a Moog ladder)
+                        that's arguably "don't do that" territory rather than a regression.
+                        The line between "bug" and "musical abuse" is a thing you negotiate over time.
+                    </em>
+                </span>
+                This is the ratchet at its most useful: if a change reintroduces a combination
+                that used to NaN and no longer does, I find out overnight, without being there.
+            </p>
+        </section>
+
+        <section>
+            <h2>Where the harness is blind</h2>
+            <p>
+                There's a whole class of DSP failure that only shows up
+                when real audio-rate modulation drives a parameter outside the range
+                a static sweep ever explores.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="dsp-nan-bugs" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="dsp-nan-bugs" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        A flavour of these: a Moog ladder emitting NaN because a cutoff value
+                        hadn't been normalised to <code>[0,1]</code> before entering the core,
+                        silencing the entire graph.
+                        An SVF filter destabilising under audio-rate poly-mod FM.
+                        An aftertouch curve set to <code>x²</code> that felt
+                        too aggressive in the hand and needed to be <code>x^1.5</code> by ear.
+                        None of these showed up in 1176 static parameter sweeps.
+                        All of them showed up within thirty seconds of playing the hardware.
+                    </em>
+                </span>
+                The agent would ship features that passed every test,
+                and then I'd plug the KeyStep in and the filter would blow up into NaN
+                on the second note.
+            </p>
+            <p>
+                This is the intense-in-the-loop mode kicking in: a bug the harness didn't catch becomes
+                a weekend of pairing, a few <code>fix:</code> commits, and (crucially)
+                a new pairwise test that <em>would</em> have caught it.
+                The harness grows every time it misses something.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="harness-grows" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="harness-grows" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        The audit checklist in AGENTS.md has a permanent line item
+                        that reads, essentially, <em>"after every bug, ask: could the harness have caught this?
+                        If yes, widen the harness."</em>
+                        The agent obeys this very cheerfully. It loves widening things.
+                    </em>
+                </span>
+                Which means the <em>next</em> unsupervised stretch can safely get a little longer.
+                Every hour I spent in intense-in-the-loop mode on a blind-spot bug bought me hours
+                of safely-unsupervised time on the next project.
+            </p>
+            <p>
+                The asymmetry that never went away: <strong>the agent cannot hear.</strong>
+                I can. Half the bugs I found were from actually playing the thing:
+                a filter sweep that felt wrong; a preset that sounded thin;
+                program-switching that clicked so subtly the tests didn't register it
+                but my ears absolutely did.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="click-free-religion" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="click-free-religion" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        <em>"Switching programs clicks"</em> is listed as a critical failure in DOCTRINE.md,
+                        right next to <em>"The first note produces silence."</em>
+                        Both are unforgivable. Both have test coverage now.
+                    </em>
+                </span>
+                Each of those became a new measurement, a new assertion, a new harness expansion.
+                The harness slowly learned to hear a little more, through me.
+            </p>
+        </section>
+
+        <section>
+            <h2>The contract, in one paragraph</h2>
+            <p>
+                The whole thing is a trust contract. On one side, the agent promises
+                that every commit either improves Q or refuses to land.
+                On the other, I promise that when the harness misses something,
+                I'll catch it with my ears and widen the harness so it won't miss the same thing twice.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="contract-shape" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="contract-shape" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This is the shape of the collaboration, and it's load-bearing.
+                        Break it on either side and the whole rhythm collapses.
+                        The agent starts shipping regressions; I stop trusting diffs; the unsupervised time shrinks back to zero.
+                    </em>
+                </span>
+                In the middle sits Q, a number that goes up over time, that <em>cannot</em> go down,
+                that is the compressed form of everything both sides have agreed matters.
+            </p>
+            <p>
+                This is what I mean when I say the harness is what makes agentic work actually work.
+                Doctrines are easy to write. Ratchets, paired to an honest test harness, are hard to build,
+                and they're where the trust comes from.
+            </p>
+        </section>
+
+        <section>
+            <h2>If you want to try this yourself</h2>
+            <p>
+                A few preconditions I'd flag, hard-won:
+            </p>
+            <p>
+                <strong>Pick a domain where correctness is testable in isolation.</strong>
+                A parameter either produces audio or it doesn't. A transition either clicks or it doesn't.
+                A latency is either under 10ms or it isn't.
+                DSP is genuinely unusual in how clean this is.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="testable-correctness" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="testable-correctness" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Imagine trying to run this loop on a growth-marketing dashboard.
+                        "Q score dropped because the conversion funnel changed shape." 💀
+                    </em>
+                </span>
+                If your project doesn't have an equivalent, you'll need to invent one before you can ratchet anything.
+            </p>
+            <p>
+                <strong>Invest in the harness before you invest in the features.</strong>
+                The single biggest lever I had was offline WASM compilation of the DSP:
+                the same code the browser runs, compiled headlessly, fed buffers, inspected by an assertion.
+                That unlocked the entire rest of the project.
+                If there's an equivalent <em>"run the real thing without the real runtime"</em> move in your domain, find it first.
+            </p>
+            <p>
+                <strong>Treat every missed bug as a harness bug, not a code bug.</strong>
+                The fix for the code is the first commit. The <em>real</em> work is the second commit,
+                where you write the test that turns that class of bug into something the agent can never reintroduce.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="two-commits" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="two-commits" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        This is also just good engineering practice.
+                        It turns out <em>"always good engineering practice"</em> is exactly the cluster of habits
+                        that agentic loops amplify the hardest.
+                        Do the thing you already knew you should be doing. Then the loop works.
+                    </em>
+                </span>
+            </p>
+            <p>
+                <strong>Own the doctrine.</strong>
+                The harness measures; the doctrine decides what to measure.
+                I wrote the Q weights, the Six Measures, the definitions of <em>critical failure</em>.
+                The agent can't rescue a project where nobody has said what good looks like.
+                That part is still yours.
+                <a href="/pages/posts/20260421-how-agents-built-arcturus.html">Part one</a> is the long-form version of this point.
+            </p>
+        </section>
+
+        <section>
+            <h2>Where this goes next</h2>
+            <p>
+                Arcturus is live at
+                <a href="https://arcturus.lef.fyi" target="_blank" rel="noopener noreferrer">arcturus.lef.fyi</a>.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="try-it-caveat" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="try-it-caveat" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        You'll need a Chromium-based browser (Web MIDI + SharedArrayBuffer)
+                        and ideally an Arturia KeyStep + BeatStep.
+                        Without hardware you'll get to stare at a calibration screen and appreciate the typography.
+                    </em>
+                </span>
+                The source, the doctrine, the architecture reference, the sound-engine spec,
+                and the signal-testing framework are all on
+                <a href="https://github.com/Lef-F/arcturus" target="_blank" rel="noopener noreferrer">GitHub</a>.
+            </p>
+            <p>
+                The next post in this series is the personal one:
+                why I wanted a browser synth controlled by the two Arturia devices on my desk in the first place.
+                What <em>jamming on knobs until the world quiets down</em> has given me for years.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="next-post" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="next-post" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        Spoiler: it involves being tired and wanting to not have to think about anything
+                        except which knob to turn next.
+                        You'll see. 🎛️
+                    </em>
+                </span>
+            </p>
+            <p>
+                Thanks for reading. Go turn some knobs. 🕺
+            </p>
+        </section>
+    </article>
+    <footer><a href="/">Return home</a></footer>
+</body>
+</html>

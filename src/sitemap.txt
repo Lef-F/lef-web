@@ -6,6 +6,8 @@ https://lef.fyi/tufte.css
 https://lef.fyi/robots.txt
 https://lef.fyi/pages/posts/20220305-my-first-post.html
 https://lef.fyi/pages/posts/20220319-a-very-poetic-python.html
+https://lef.fyi/pages/posts/20260421-the-trust-harness.html
+https://lef.fyi/pages/posts/20260421-how-agents-built-arcturus.html
 https://lef.fyi/pages/posts/20260301-how-this-website-is-built.html
 https://lef.fyi/sitemap.txt
 https://lef.fyi/media/00-common/lef_eyes_2021-06.jpg
