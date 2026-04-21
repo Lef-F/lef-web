@@ -36,8 +36,8 @@
                 I typed maybe five percent of the code myself.
             </p>
             <p>
-                The rest was built by <em>agents</em> &mdash; specifically, by sessions of
-                <a href="https://docs.claude.com/en/docs/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a>
+                The rest was built by <em>agents</em>, specifically by sessions of
+                <a href="https://platform.claude.com/docs/en/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a>
                 working off a small pile of markdown files I wrote first.
                 This is not a <em>"look mom, AI wrote my code!"</em> post.
                 The code is good, I'm proud of it, and I can defend every design decision in it.
@@ -55,7 +55,7 @@
             </p>
             <p>
                 So let me walk you through it.
-                Not the synth itself &mdash; that deserves its own post, and it's coming.
+                Not the synth itself; that deserves its own post, and it's coming.
                 This one is about the <em>process</em>:
                 how you hand off roughly ninety-five percent of the implementation work to an autonomous loop
                 and still end up with something you'd put your name on.
@@ -67,9 +67,9 @@
             <h2>What Arcturus is (briefly)</h2>
             <p>
                 Arcturus is a browser-based virtual analog synthesizer controlled entirely by Arturia hardware.
-                A <a href="https://www.arturia.com/products/hybrid-synths/keystep/overview" target="_blank" rel="noopener noreferrer">KeyStep</a>
+                A <a href="https://www.arturia.com/support/downloads-manuals/product/keystep" target="_blank" rel="noopener noreferrer">KeyStep</a>
                 for notes, pitch bend, aftertouch, and transport.
-                A <a href="https://www.arturia.com/products/hybrid-synths/beatstep/overview" target="_blank" rel="noopener noreferrer">BeatStep</a>
+                A <a href="https://www.arturia.com/support/downloads-manuals/product/beatstep" target="_blank" rel="noopener noreferrer">BeatStep</a>
                 for sixteen relative encoders and sixteen pads.
                 No mouse. No menus. The hardware <em>is</em> the interface.
                 <label class="sidenote-number"></label>
@@ -77,7 +77,7 @@
                 <input type="checkbox" id="hardware-first" class="margin-toggle">
                 <span class="sidenote marginnote">
                     <em>
-                        There's a longer story about <em>why</em> I wanted this &mdash;
+                        There's a longer story about <em>why</em> I wanted this:
                         two devices gathering dust, a vision of gluing them together into
                         a physical-first synth I could actually <em>lose myself in</em>.
                         That's the next post.
@@ -122,7 +122,7 @@
                         I tried a single mega-file early on. It collapsed under its own weight.
                         The agent would skim it and miss the operational parts,
                         or drown in them and forget the architecture.
-                        Splitting by <em>purpose</em> &mdash; what, how, why &mdash; fixed that.
+                        Splitting by <em>purpose</em> (what, how, why) fixed that.
                     </em>
                 </span>
             </p>
@@ -136,7 +136,7 @@
                 <span class="sidenote marginnote">
                     <em>
                         The pitfalls section is worth its weight in coffee.
-                        "<code>os.hs_phasor</code> creates phantom inputs &mdash; use the inline feedback phasor instead."
+                        "<code>os.hs_phasor</code> creates phantom inputs; use the inline feedback phasor instead."
                         "Filter graph duplication causes OOM, split with <code>&lt;:</code>."
                         Every one of those lines is a bug I paid for once, so the agent never has to.
                     </em>
@@ -165,7 +165,7 @@
                     </em>
                 </span>
                 It defines the Constitution (things that never change), a Quality Score, the Six Measures of improvement,
-                and the Cycle &mdash; the ten-step loop the agent runs on repeat.
+                and the Cycle: the ten-step loop the agent runs on repeat.
                 The first page opens with <em>"You are an autonomous agent maintaining a hardware-first virtual analog synthesizer.
                 This document is your operating system. Read it fully at the start of every session."</em>
                 I wrote that in the same spirit you'd write a mission statement, and then I asked the agent to live by it.
@@ -210,7 +210,7 @@
             </p>
             <p>
                 The first few sessions the agent spent closing gaps I hadn't even noticed existed.
-                Effects parameters had no signal coverage &mdash; it built a whole offline harness for them.
+                Effects parameters had no signal coverage, so it built a whole offline harness for them.
                 <label class="sidenote-number"></label>
                 <label id="margin-toggle-button" for="effects-harness" class="margin-toggle">⊕</label>
                 <input type="checkbox" id="effects-harness" class="margin-toggle">
@@ -222,9 +222,9 @@
                         I opened the PR, squinted, nodded, merged.
                     </em>
                 </span>
-                Transitions weren't validated &mdash; it added click detection across program switches.
-                Latency wasn't measured &mdash; it added a note-on onset test with a 10ms budget.
-                CPU wasn't benchmarked &mdash; it added a perf test at 8 voices at 48kHz.
+                Transitions weren't validated, so it added click detection across program switches.
+                Latency wasn't measured, so it added a note-on onset test with a 10ms budget.
+                CPU wasn't benchmarked, so it added a perf test at 8 voices at 48kHz.
                 I didn't ask for any of that specifically. The gap detection protocol in DOCTRINE.md asked for it,
                 and the agent listened.
             </p>
@@ -307,7 +307,7 @@
                 I wrote the architectural constraints. No frameworks. No React, no Vue, no Lit.
                 One concern per file. Vanilla TypeScript + DOM API. CSS uses design tokens only.
                 <code>@/</code> import alias maps to <code>src/</code>.
-                All MIDI values come from calibration &mdash; zero hardcoded constants in production.
+                All MIDI values come from calibration: zero hardcoded constants in production.
                 No backwards compatibility, ever; this is a dev-phase project, delete old code.
                 Those weren't obvious. The agent would happily have pulled in React
                 if I hadn't written the constraint down.
@@ -338,6 +338,31 @@
                         Don't give them one and they'll optimize for the thing they <em>can</em> measure, which is usually test count. Unhelpful.
                     </em>
                 </span>
+            </p>
+            <p>
+                I also caught the bugs the test suite couldn't see.
+                There's a whole class of DSP failure that only shows up
+                when real audio-rate modulation drives a parameter outside the range
+                static sweep tests explore.
+                <label class="sidenote-number"></label>
+                <label id="margin-toggle-button" for="dsp-nan-bugs" class="margin-toggle">⊕</label>
+                <input type="checkbox" id="dsp-nan-bugs" class="margin-toggle">
+                <span class="sidenote marginnote">
+                    <em>
+                        A flavour of these: a Moog ladder emitting NaN because a cutoff value
+                        hadn't been normalised to <code>[0,1]</code> before entering the core,
+                        silencing the entire graph.
+                        An SVF filter destabilising under audio-rate poly-mod FM.
+                        An aftertouch curve set to <code>x²</code> that felt
+                        too aggressive in the hand and needed to be <code>x^1.5</code> by ear.
+                        None of these showed up in 1176 static parameter sweeps.
+                        All of them showed up within thirty seconds of playing the hardware.
+                    </em>
+                </span>
+                The agent shipped features that passed every test,
+                and then I'd plug the KeyStep in and the filter would blow up into NaN
+                on the second note. A solid chunk of those final-month <code>fix:</code> commits
+                are me tracking those down and writing the pairwise test that <em>would</em> have caught them.
             </p>
             <p>
                 I also did the ultimate integration test, over and over:
@@ -399,10 +424,17 @@
                 <input type="checkbox" id="arcturus-dev" class="margin-toggle">
                 <span class="sidenote marginnote">
                     <em>
-                        The git history before I cleaned it up contained forty-one commits
-                        authored by <code>Arcturus Dev &lt;arcturus@dev.local&gt;</code>.
-                        The agent had, at some point, invented itself an identity and a fake email domain.
-                        Like a WeWork badge. I found this very funny and also mildly alarming.
+                        The history before I unified authors had <em>three</em> distinct names on it.
+                        Sixty-four commits from <code>Arcturus Dev &lt;arcturus@dev.local&gt;</code>, where
+                        the agent had, at some point, invented itself an identity and a fake email domain,
+                        like a WeWork badge.
+                        One commit from <code>Claude &lt;noreply@anthropic.com&gt;</code>:
+                        the one time the persona slipped, for a Prophet-5-inspired DSP rewrite
+                        that reshaped the entire sound engine in a single pass. Claude, apparently, wanted
+                        credit for that one.
+                        And fifty commits from <code>Lef</code> (me), almost all
+                        <code>fix:</code> and <code>test:</code>, clustered in the final month.
+                        I found the three-author arc very funny and also mildly alarming.
                     </em>
                 </span>
                 Right before publishing the repo I ran <code>git filter-repo</code>
@@ -419,7 +451,7 @@
             <p>
                 In <a href="/pages/posts/20260301-how-this-website-is-built.html">the last post</a>
                 I wrote about teaching an AI to help build this very website.
-                I described it as a documentation ouroboros &mdash;
+                I described it as a documentation ouroboros:
                 the AI helping to write the scaffolding that teaches it how to help.
             </p>
             <p>
@@ -434,7 +466,7 @@
                     <em>
                         I trimmed a lot of this before publishing.
                         Session logs are useful <em>during</em> a project
-                        and dead weight after it. The final DOCTRINE.md is evergreen &mdash;
+                        and dead weight after it. The final DOCTRINE.md is evergreen:
                         Constitution, Score, Measures, Cycle. No logs.
                     </em>
                 </span>
@@ -490,7 +522,7 @@
             <p>
                 And I was willing to own the doctrine.
                 If you can't write down what <em>good</em> looks like in your project
-                &mdash; what you'd never compromise on, what the quality bar is, what failure states matter &mdash;
+                (what you'd never compromise on, what the quality bar is, what failure states matter),
                 no amount of agentic loop is going to rescue you.
                 The doctrine is where taste lives. You have to supply it.
             </p>
