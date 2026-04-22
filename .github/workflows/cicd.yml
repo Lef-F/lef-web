@@ -108,33 +108,44 @@ jobs:
           FQDN="${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}"
           CONTENT="${{ steps.names.outputs.BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
 
-          EXISTING=$(curl --fail-with-body -sS -X GET \
+          EXISTING_RESP=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id // empty')
+            -H "Content-Type: application/json")
+          EXISTING=$(echo "$EXISTING_RESP" | jq -r '.result[0].id // empty')
+          echo "GET response (id=${EXISTING:-none}):"
+          echo "$EXISTING_RESP" | jq -c '{success, errors, messages, count: (.result | length)}'
 
           PAYLOAD=$(jq -n \
             --arg name "${{ steps.names.outputs.BRANCH }}" \
             --arg content "$CONTENT" \
             '{type:"CNAME", name:$name, content:$content, ttl:1, proxied:true}')
+          echo "Payload: $PAYLOAD"
 
           if [ -n "$EXISTING" ]; then
             echo "Updating existing CNAME (id=$EXISTING) for ${FQDN}"
-            curl --fail-with-body -sS -X PUT \
+            RESP=$(curl --fail-with-body -sS -X PUT \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$EXISTING" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
               -H "Content-Type: application/json" \
-              --data "$PAYLOAD" > /dev/null
+              --data "$PAYLOAD")
           else
             echo "Creating new CNAME for ${FQDN}"
-            curl --fail-with-body -sS -X POST \
+            RESP=$(curl --fail-with-body -sS -X POST \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
               -H "Content-Type: application/json" \
-              --data "$PAYLOAD" > /dev/null
+              --data "$PAYLOAD")
+          fi
+
+          echo "Write response:"
+          echo "$RESP" | jq .
+          if ! echo "$RESP" | jq -e '.success == true' > /dev/null; then
+            echo "::error::Cloudflare DNS write returned success=false"
+            exit 1
           fi
 
       # Scope the purge to just the hosts this deploy actually touched so we
@@ -151,12 +162,17 @@ jobs:
               '[$fqdn]')
           fi
           echo "Purging hosts: $HOSTS"
-          curl --fail-with-body -sS -X POST \
+          RESP=$(curl --fail-with-body -sS -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data "{\"hosts\": $HOSTS}" > /dev/null
+            --data "{\"hosts\": $HOSTS}")
+          echo "$RESP" | jq -c '{success, errors}'
+          if ! echo "$RESP" | jq -e '.success == true' > /dev/null; then
+            echo "::error::Cloudflare purge returned success=false"
+            exit 1
+          fi
 
   cleanup:
     # Runs when a PR is closed (merged or not). Tears down the preview bucket
