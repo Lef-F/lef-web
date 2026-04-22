@@ -83,8 +83,9 @@ jobs:
             --follow-symlinks \
             --delete
 
+      # Always resolve the zone name: main uses it for the apex+www cache purge,
+      # previews use it to construct their FQDN.
       - name: Resolve Cloudflare zone name
-        if: steps.branch.outputs.NAME != 'main'
         id: zone
         run: |
           ZONE_NAME=$(curl --fail-with-body -sS -X GET \
@@ -133,14 +134,26 @@ jobs:
               --data "$PAYLOAD" > /dev/null
           fi
 
+      # Scope the purge to just the hosts this deploy actually touched so we
+      # don't nuke unrelated cached content in the zone on every push.
       - name: Purge Cloudflare cache
         run: |
+          if [ "${{ steps.branch.outputs.NAME }}" = "main" ]; then
+            HOSTS=$(jq -nc \
+              --arg apex "${{ steps.zone.outputs.NAME }}" \
+              '[$apex, ("www." + $apex)]')
+          else
+            HOSTS=$(jq -nc \
+              --arg fqdn "${{ steps.branch.outputs.NAME }}.${{ steps.zone.outputs.NAME }}" \
+              '[$fqdn]')
+          fi
+          echo "Purging hosts: $HOSTS"
           curl --fail-with-body -sS -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything": true}'
+            --data "{\"hosts\": $HOSTS}" > /dev/null
 
   cleanup:
     # Runs when a PR is closed (merged or not). Tears down the preview bucket
