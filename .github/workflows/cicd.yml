@@ -1,22 +1,49 @@
-name: Upload Website
+name: Deploy
 
 on:
   push:
+    branches: [main]
     paths:
       - src/**
       - .github/workflows/**
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+# Serialize workflow runs per PR (or per ref for main pushes) so that a
+# deploy cannot race with its matching cleanup. Running jobs finish before
+# the next one starts.
+concurrency:
+  group: deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    # Runs for:
+    #   - push to main                            (production deploy)
+    #   - PR opened / synchronize / reopened      (preview create/update)
+    # Skipped for closed PRs and for PRs from forks (secrets are unavailable).
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       github.event.action != 'closed' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          # On PR events, check out the PR head (not the merge commit) so the
+          # preview reflects exactly what the author pushed.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Get branch name
-        id: branch-name
-        run: echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+      - name: Resolve branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "NAME=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "NAME=main" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -28,10 +55,10 @@ jobs:
       - name: Determine S3 bucket name
         id: bucket
         run: |
-          if [ "${{ steps.branch-name.outputs.BRANCH }}" = "main" ]; then
+          if [ "${{ steps.branch.outputs.NAME }}" = "main" ]; then
             BUCKET=${{ secrets.AWS_S3_BUCKET }}
           else
-            BUCKET=${{ steps.branch-name.outputs.BRANCH }}.${{ secrets.AWS_S3_BUCKET }}
+            BUCKET=${{ steps.branch.outputs.NAME }}.${{ secrets.AWS_S3_BUCKET }}
           fi
           echo "NAME=${BUCKET}" >> $GITHUB_OUTPUT
 
@@ -60,21 +87,51 @@ jobs:
             --follow-symlinks \
             --delete
 
-      - name: Create DNS record for branch subdomain
-        if: steps.branch-name.outputs.BRANCH != 'main'
+      - name: Resolve Cloudflare zone name
+        if: steps.branch.outputs.NAME != 'main'
+        id: zone
         run: |
-          curl -sS -X POST \
-            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
+          ZONE_NAME=$(curl -sS -X GET \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{
-              "type": "CNAME",
-              "name": "${{ steps.branch-name.outputs.BRANCH }}",
-              "content": "${{ steps.bucket.outputs.NAME }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com",
-              "ttl": 1,
-              "proxied": true
-            }'
+            -H "Content-Type: application/json" | jq -r '.result.name')
+          echo "NAME=${ZONE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Create or update DNS record for branch subdomain
+        if: steps.branch.outputs.NAME != 'main'
+        run: |
+          FQDN="${{ steps.branch.outputs.NAME }}.${{ steps.zone.outputs.NAME }}"
+          CONTENT="${{ steps.bucket.outputs.NAME }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
+
+          EXISTING=$(curl -sS -X GET \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
+            -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+            -H "Content-Type: application/json" | jq -r '.result[0].id // empty')
+
+          PAYLOAD=$(jq -n \
+            --arg name "${{ steps.branch.outputs.NAME }}" \
+            --arg content "$CONTENT" \
+            '{type:"CNAME", name:$name, content:$content, ttl:1, proxied:true}')
+
+          if [ -n "$EXISTING" ]; then
+            echo "Updating existing CNAME (id=$EXISTING) for ${FQDN}"
+            curl -sS -X PUT \
+              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$EXISTING" \
+              -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              --data "$PAYLOAD" > /dev/null
+          else
+            echo "Creating new CNAME for ${FQDN}"
+            curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
+              -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              --data "$PAYLOAD" > /dev/null
+          fi
 
       - name: Purge Cloudflare cache
         run: |
@@ -84,3 +141,68 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything": true}'
+
+  cleanup:
+    # Runs when a PR is closed (merged or not). Tears down the preview bucket
+    # and its Cloudflare CNAME. Best-effort: no-op if the resources are already
+    # gone. Fork PRs are skipped because their preview was never created.
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Compute names
+        id: names
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          BUCKET="${BRANCH}.${{ secrets.AWS_S3_BUCKET }}"
+          echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "BUCKET=${BUCKET}" >> $GITHUB_OUTPUT
+
+      - name: Empty and delete preview S3 bucket
+        run: |
+          if aws s3api head-bucket --bucket "${{ steps.names.outputs.BUCKET }}" 2>/dev/null; then
+            echo "Emptying and deleting bucket ${{ steps.names.outputs.BUCKET }}"
+            aws s3 rm s3://${{ steps.names.outputs.BUCKET }}/ --recursive
+            aws s3 rb s3://${{ steps.names.outputs.BUCKET }}
+          else
+            echo "Bucket ${{ steps.names.outputs.BUCKET }} not found, skipping."
+          fi
+
+      - name: Resolve Cloudflare zone name
+        id: zone
+        run: |
+          ZONE_NAME=$(curl -sS -X GET \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+            -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+            -H "Content-Type: application/json" | jq -r '.result.name')
+          echo "NAME=${ZONE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Delete preview Cloudflare DNS record
+        run: |
+          FQDN="${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}"
+          RECORD_ID=$(curl -sS -X GET \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
+            -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+            -H "Content-Type: application/json" | jq -r '.result[0].id // empty')
+
+          if [ -n "$RECORD_ID" ]; then
+            echo "Deleting CNAME ${FQDN} (id=$RECORD_ID)"
+            curl -sS -X DELETE \
+              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$RECORD_ID" \
+              -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+              -H "Content-Type: application/json" > /dev/null
+          else
+            echo "No CNAME for ${FQDN}, skipping."
+          fi
