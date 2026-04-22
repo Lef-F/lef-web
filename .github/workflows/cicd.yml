@@ -179,7 +179,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data "{\"hosts\": $HOSTS}")
-          echo "$RESP" | jq -c '{success, errors}'
+          echo "$RESP" | jq -c '{success, errors, messages}'
           if ! echo "$RESP" | jq -e '.success == true' > /dev/null; then
             echo "::error::Cloudflare purge returned success=false"
             exit 1
@@ -240,19 +240,31 @@ jobs:
       - name: Delete preview Cloudflare DNS record
         run: |
           FQDN="${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}"
-          RECORD_ID=$(curl --fail-with-body -sS -X GET \
+
+          LOOKUP_RESP=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id // empty')
+            -H "Content-Type: application/json")
+          echo "$LOOKUP_RESP" | jq -c '{success, errors, messages}'
+          if ! echo "$LOOKUP_RESP" | jq -e '.success == true' > /dev/null; then
+            echo "::error::Cloudflare DNS lookup returned success=false"
+            exit 1
+          fi
+          RECORD_ID=$(echo "$LOOKUP_RESP" | jq -r '.result[0].id // empty')
 
           if [ -n "$RECORD_ID" ]; then
             echo "Deleting CNAME ${FQDN} (id=$RECORD_ID)"
-            curl --fail-with-body -sS -X DELETE \
+            DEL_RESP=$(curl --fail-with-body -sS -X DELETE \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$RECORD_ID" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-              -H "Content-Type: application/json" > /dev/null
+              -H "Content-Type: application/json")
+            echo "$DEL_RESP" | jq -c '{success, errors, messages}'
+            if ! echo "$DEL_RESP" | jq -e '.success == true' > /dev/null; then
+              echo "::error::Cloudflare DNS DELETE returned success=false"
+              exit 1
+            fi
           else
             echo "No CNAME for ${FQDN}, skipping."
           fi
