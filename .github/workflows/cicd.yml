@@ -9,9 +9,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
 
-# Serialize workflow runs per PR (or per ref for main pushes) so that a
-# deploy cannot race with its matching cleanup. Running jobs finish before
-# the next one starts.
+# Serialize workflow runs per PR (and per ref for main pushes) so successive
+# events on the same target never step on each other. For PRs this stops a
+# deploy from racing its matching cleanup; for main it stops two pushes from
+# fighting over the same bucket and cache.
 concurrency:
   group: deploy-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
@@ -36,10 +37,22 @@ jobs:
           # preview reflects exactly what the author pushed.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      # push events only fire on `main`, so the fallback is always `main`.
-      - name: Resolve branch name
-        id: branch
-        run: echo "NAME=${{ github.event.pull_request.head.ref || 'main' }}" >> $GITHUB_OUTPUT
+      # Quarantine the PR head ref via env first; every downstream consumer
+      # reads the already-materialised GITHUB_OUTPUT values instead of
+      # interpolating user-controllable expressions into shell.
+      - name: Compute names
+        id: names
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          BRANCH="${HEAD_REF:-main}"
+          if [ "$BRANCH" = "main" ]; then
+            BUCKET="${{ secrets.AWS_S3_BUCKET }}"
+          else
+            BUCKET="${BRANCH}.${{ secrets.AWS_S3_BUCKET }}"
+          fi
+          echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "BUCKET=${BUCKET}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -48,38 +61,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Determine S3 bucket name
-        id: bucket
-        run: |
-          if [ "${{ steps.branch.outputs.NAME }}" = "main" ]; then
-            BUCKET=${{ secrets.AWS_S3_BUCKET }}
-          else
-            BUCKET=${{ steps.branch.outputs.NAME }}.${{ secrets.AWS_S3_BUCKET }}
-          fi
-          echo "NAME=${BUCKET}" >> $GITHUB_OUTPUT
-
       - name: Create S3 bucket if needed
         run: |
-          if ! aws s3api head-bucket --bucket "${{ steps.bucket.outputs.NAME }}" 2>/dev/null; then
-            aws s3 mb s3://${{ steps.bucket.outputs.NAME }}
+          if ! aws s3api head-bucket --bucket "${{ steps.names.outputs.BUCKET }}" 2>/dev/null; then
+            aws s3 mb s3://${{ steps.names.outputs.BUCKET }}
           fi
 
       - name: Configure bucket for static website hosting
         run: |
           aws s3api delete-public-access-block \
-            --bucket ${{ steps.bucket.outputs.NAME }}
-          sed "s/www.example.com/${{ steps.bucket.outputs.NAME }}/g" \
+            --bucket ${{ steps.names.outputs.BUCKET }}
+          sed "s/www.example.com/${{ steps.names.outputs.BUCKET }}/g" \
             ${{ github.workspace }}/.github/workflows/policy.json > /tmp/policy.json
           aws s3api put-bucket-policy \
-            --bucket ${{ steps.bucket.outputs.NAME }} \
+            --bucket ${{ steps.names.outputs.BUCKET }} \
             --policy file:///tmp/policy.json
-          aws s3 website s3://${{ steps.bucket.outputs.NAME }}/ \
+          aws s3 website s3://${{ steps.names.outputs.BUCKET }}/ \
             --index-document index.html \
             --error-document 404.html
 
       - name: Sync src/ to S3
         run: |
-          aws s3 sync src/ s3://${{ steps.bucket.outputs.NAME }}/ \
+          aws s3 sync src/ s3://${{ steps.names.outputs.BUCKET }}/ \
             --follow-symlinks \
             --delete
 
@@ -100,10 +103,10 @@ jobs:
           echo "NAME=${ZONE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Create or update DNS record for branch subdomain
-        if: steps.branch.outputs.NAME != 'main'
+        if: steps.names.outputs.BRANCH != 'main'
         run: |
-          FQDN="${{ steps.branch.outputs.NAME }}.${{ steps.zone.outputs.NAME }}"
-          CONTENT="${{ steps.bucket.outputs.NAME }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
+          FQDN="${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}"
+          CONTENT="${{ steps.names.outputs.BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
 
           EXISTING=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
@@ -112,7 +115,7 @@ jobs:
             -H "Content-Type: application/json" | jq -r '.result[0].id // empty')
 
           PAYLOAD=$(jq -n \
-            --arg name "${{ steps.branch.outputs.NAME }}" \
+            --arg name "${{ steps.names.outputs.BRANCH }}" \
             --arg content "$CONTENT" \
             '{type:"CNAME", name:$name, content:$content, ttl:1, proxied:true}')
 
@@ -138,13 +141,13 @@ jobs:
       # don't nuke unrelated cached content in the zone on every push.
       - name: Purge Cloudflare cache
         run: |
-          if [ "${{ steps.branch.outputs.NAME }}" = "main" ]; then
+          if [ "${{ steps.names.outputs.BRANCH }}" = "main" ]; then
             HOSTS=$(jq -nc \
               --arg apex "${{ steps.zone.outputs.NAME }}" \
               '[$apex, ("www." + $apex)]')
           else
             HOSTS=$(jq -nc \
-              --arg fqdn "${{ steps.branch.outputs.NAME }}.${{ steps.zone.outputs.NAME }}" \
+              --arg fqdn "${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}" \
               '[$fqdn]')
           fi
           echo "Purging hosts: $HOSTS"
@@ -172,10 +175,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # Quarantine the PR head ref via env; downstream steps use the
+      # materialised GITHUB_OUTPUT values, not raw expression interpolation.
       - name: Compute names
         id: names
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          BRANCH="${{ github.event.pull_request.head.ref }}"
+          BRANCH="${HEAD_REF}"
           BUCKET="${BRANCH}.${{ secrets.AWS_S3_BUCKET }}"
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "BUCKET=${BUCKET}" >> $GITHUB_OUTPUT
