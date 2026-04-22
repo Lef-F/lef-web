@@ -123,28 +123,39 @@ jobs:
             '{type:"CNAME", name:$name, content:$content, ttl:1, proxied:true}')
           echo "Payload: $PAYLOAD"
 
-          if [ -n "$EXISTING" ]; then
-            echo "Updating existing CNAME (id=$EXISTING) for ${FQDN}"
-            RESP=$(curl --fail-with-body -sS -X PUT \
-              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$EXISTING" \
-              -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
-              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              --data "$PAYLOAD")
-          else
+          if [ -z "$EXISTING" ]; then
             echo "Creating new CNAME for ${FQDN}"
-            RESP=$(curl --fail-with-body -sS -X POST \
+            POST_RESP=$(curl --fail-with-body -sS -X POST \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
               -H "Content-Type: application/json" \
               --data "$PAYLOAD")
+            if ! echo "$POST_RESP" | jq -e '.success == true' > /dev/null; then
+              echo "::error::Cloudflare DNS POST returned success=false"
+              echo "$POST_RESP" | jq .
+              exit 1
+            fi
+            EXISTING=$(echo "$POST_RESP" | jq -r '.result.id')
+            echo "Created record id=$EXISTING"
           fi
 
-          echo "Write response:"
-          echo "$RESP" | jq .
+          # Always finish with a PUT against the record id. For a pre-existing
+          # record this is just the normal update. For a just-POSTed record
+          # this works around a Cloudflare quirk where proxied CNAMEs created
+          # by POST can linger in the control plane without being published to
+          # the public DNS layer until a subsequent modification nudges them.
+          echo "Updating CNAME (id=$EXISTING) for ${FQDN}"
+          RESP=$(curl --fail-with-body -sS -X PUT \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$EXISTING" \
+            -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD")
+          echo "PUT response:"
+          echo "$RESP" | jq -c '{success, errors, messages}'
           if ! echo "$RESP" | jq -e '.success == true' > /dev/null; then
-            echo "::error::Cloudflare DNS write returned success=false"
+            echo "::error::Cloudflare DNS PUT returned success=false"
             exit 1
           fi
 
