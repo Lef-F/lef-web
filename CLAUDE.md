@@ -59,11 +59,25 @@ See `.claude/context/tufte-patterns.md` for all HTML patterns (sidenotes, images
 
 ## Deployment
 
-Automated via GitHub Actions (`.github/workflows/cicd.yml`):
-- **Trigger**: Push to `src/` or `.github/workflows/`
-- **main branch** → production S3 bucket (lef.fyi)
-- **Other branches** → `{branch}.lef.fyi` subdomain (auto-created)
-- Pipeline: checkout with LFS → configure bucket + policy → S3 sync → Cloudflare DNS + cache purge
+Automated via GitHub Actions (`.github/workflows/cicd.yml`). Two triggers, two jobs:
+
+- **Push to `main`** → `deploy` job syncs to production S3 bucket (lef.fyi) and purges cache.
+- **PR `opened` / `synchronize` / `reopened`** → `deploy` job creates or updates a preview at `{branch}.lef.fyi`.
+- **PR `closed`** (merged or not) → `cleanup` job empties/removes the preview bucket and deletes its Cloudflare CNAME.
+
+Pushes to non-`main` branches without an open PR do not deploy anything on their own. Open a PR to get a preview.
+
+Pipeline (deploy job): checkout with LFS → configure bucket + policy → S3 sync → Cloudflare CNAME upsert → cache purge.
+
+### Branch naming constraints
+
+Branch names become S3 bucket prefixes and Cloudflare subdomain labels, so they must be:
+- **lowercase** — S3 bucket names reject mixed case
+- **no slashes** — `feature/foo` breaks bucket naming; use `feature-foo` instead
+- **no underscores, no leading/trailing hyphens** — DNS label rules
+- **short enough** — bucket is `{branch}.{base}`, must fit in 63 chars total
+
+Stick to flat kebab-case (`post-quiet-world`, `ci-pr-previews`) and you never think about it.
 
 ## Git
 

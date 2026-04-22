@@ -36,14 +36,10 @@ jobs:
           # preview reflects exactly what the author pushed.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      # push events only fire on `main`, so the fallback is always `main`.
       - name: Resolve branch name
         id: branch
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "NAME=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
-          else
-            echo "NAME=main" >> $GITHUB_OUTPUT
-          fi
+        run: echo "NAME=${{ github.event.pull_request.head.ref || 'main' }}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -91,11 +87,15 @@ jobs:
         if: steps.branch.outputs.NAME != 'main'
         id: zone
         run: |
-          ZONE_NAME=$(curl -sS -X GET \
+          ZONE_NAME=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-            -H "Content-Type: application/json" | jq -r '.result.name')
+            -H "Content-Type: application/json" | jq -r '.result.name // empty')
+          if [ -z "$ZONE_NAME" ]; then
+            echo "::error::Failed to resolve Cloudflare zone name for zone ${{ secrets.CLOUDFLARE_ZONE_ID }}"
+            exit 1
+          fi
           echo "NAME=${ZONE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Create or update DNS record for branch subdomain
@@ -104,7 +104,7 @@ jobs:
           FQDN="${{ steps.branch.outputs.NAME }}.${{ steps.zone.outputs.NAME }}"
           CONTENT="${{ steps.bucket.outputs.NAME }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
 
-          EXISTING=$(curl -sS -X GET \
+          EXISTING=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
@@ -117,7 +117,7 @@ jobs:
 
           if [ -n "$EXISTING" ]; then
             echo "Updating existing CNAME (id=$EXISTING) for ${FQDN}"
-            curl -sS -X PUT \
+            curl --fail-with-body -sS -X PUT \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$EXISTING" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
@@ -125,7 +125,7 @@ jobs:
               --data "$PAYLOAD" > /dev/null
           else
             echo "Creating new CNAME for ${FQDN}"
-            curl -sS -X POST \
+            curl --fail-with-body -sS -X POST \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
@@ -135,7 +135,7 @@ jobs:
 
       - name: Purge Cloudflare cache
         run: |
-          curl -sS -X POST \
+          curl --fail-with-body -sS -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
@@ -167,12 +167,11 @@ jobs:
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "BUCKET=${BUCKET}" >> $GITHUB_OUTPUT
 
-      - name: Empty and delete preview S3 bucket
+      - name: Delete preview S3 bucket
         run: |
           if aws s3api head-bucket --bucket "${{ steps.names.outputs.BUCKET }}" 2>/dev/null; then
-            echo "Emptying and deleting bucket ${{ steps.names.outputs.BUCKET }}"
-            aws s3 rm s3://${{ steps.names.outputs.BUCKET }}/ --recursive
-            aws s3 rb s3://${{ steps.names.outputs.BUCKET }}
+            echo "Deleting bucket ${{ steps.names.outputs.BUCKET }} (with contents)"
+            aws s3 rb s3://${{ steps.names.outputs.BUCKET }} --force
           else
             echo "Bucket ${{ steps.names.outputs.BUCKET }} not found, skipping."
           fi
@@ -180,17 +179,21 @@ jobs:
       - name: Resolve Cloudflare zone name
         id: zone
         run: |
-          ZONE_NAME=$(curl -sS -X GET \
+          ZONE_NAME=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
-            -H "Content-Type: application/json" | jq -r '.result.name')
+            -H "Content-Type: application/json" | jq -r '.result.name // empty')
+          if [ -z "$ZONE_NAME" ]; then
+            echo "::error::Failed to resolve Cloudflare zone name for zone ${{ secrets.CLOUDFLARE_ZONE_ID }}"
+            exit 1
+          fi
           echo "NAME=${ZONE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Delete preview Cloudflare DNS record
         run: |
           FQDN="${{ steps.names.outputs.BRANCH }}.${{ steps.zone.outputs.NAME }}"
-          RECORD_ID=$(curl -sS -X GET \
+          RECORD_ID=$(curl --fail-with-body -sS -X GET \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=CNAME&name=${FQDN}" \
             -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
@@ -198,7 +201,7 @@ jobs:
 
           if [ -n "$RECORD_ID" ]; then
             echo "Deleting CNAME ${FQDN} (id=$RECORD_ID)"
-            curl -sS -X DELETE \
+            curl --fail-with-body -sS -X DELETE \
               "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$RECORD_ID" \
               -H "X-Auth-Email: ${{ secrets.EMAIL }}" \
               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_DNS_SECRET_API_TOKEN }}" \
