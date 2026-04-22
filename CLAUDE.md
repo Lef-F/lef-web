@@ -75,7 +75,7 @@ Branch names become S3 bucket prefixes and Cloudflare subdomain labels, so they 
 - **lowercase** — S3 bucket names reject mixed case
 - **no slashes** — `feature/foo` breaks bucket naming; use `feature-foo` instead
 - **no underscores, no leading/trailing hyphens** — DNS label rules
-- **short enough** — bucket is `{branch}.{base}`, must fit in 63 chars total
+- **short enough** — the preview bucket is named `{branch}.lef.fyi` (S3 caps bucket names at 63 chars, which leaves ~54 for the branch)
 
 Stick to flat kebab-case (`post-quiet-world`, `ci-pr-previews`) and you never think about it.
 
